@@ -66,6 +66,9 @@ public class DemoApp implements CommListener {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+            System.out.println("test");
+            ServerApp app= new ServerApp(0);
+/**
 		String host = "127.0.0.1";
 		int port = 4548;
 
@@ -83,6 +86,6 @@ public class DemoApp implements CommListener {
 			e.printStackTrace();
 		} finally {
 			CommConnection.getInstance().release();
-		}
+		}**/
 	}
 }
