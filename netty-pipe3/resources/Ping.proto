@@ -1,0 +1,15 @@
+syntax = "proto2";
+option java_package = "pipe.work";
+
+//									//PingMessage//
+//-------------------------------------------------------------------------------------
+/* 		 Message is used to test whether the channel has been established or not		
+*/				
+//-------------------------------------------------------------------------------------
+
+
+message PingMessage{
+	required int32 nodeId = 1;
+	required string IP = 2;
+	required int32 port = 3;
+}

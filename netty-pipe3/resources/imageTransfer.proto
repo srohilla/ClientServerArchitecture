@@ -1,0 +1,13 @@
+syntax = "proto2";
+option java_package = "pipe.work";
+
+//									//ImageMsg//
+//-------------------------------------------------------------------------------------
+/* 							Image is stored in bytes
+*/				
+//-------------------------------------------------------------------------------------
+
+message ImageMsg{
+	required int32 version = 1;
+	required bytes imageData = 2;
+}

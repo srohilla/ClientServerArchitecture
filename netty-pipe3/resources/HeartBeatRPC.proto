@@ -1,0 +1,83 @@
+syntax = "proto2";
+option java_package = "pipe.work";
+
+//									//HeartBeat//
+//-------------------------------------------------------------------------------------
+
+/*  Message sent by leader to followers. Followers know that leader is alive						
+*/				
+
+//--------------------------------------------------------------------------------------
+
+message HeartBeat{
+	required int32 term = 1; 	 
+	required int32 leaderId = 2;
+	required int64 timeStampOnLatestUpdate = 3;
+}
+
+
+//									//HeartBeatResponse//
+//-------------------------------------------------------------------------------------
+
+/*  Sent by followers to leader. The leader knows which nodes are operating 
+	and in network
+*/				
+
+//--------------------------------------------------------------------------------------
+
+message HeartBeatResponse{
+	required int32 term = 1;
+	required int32 nodeId = 2;
+	required int64 timeStampOnLatestUpdate = 3;
+		
+	enum IsAlive{
+	
+	YES = 1;
+	NO = 2;
+	
+	}
+}
+
+
+//									//HeartBeatPacket//
+//-------------------------------------------------------------------------------------
+
+/*  Either the heartbeat or heartbeat response is created and sent through this message
+*/				
+
+//--------------------------------------------------------------------------------------
+
+message HeartBeatPacket{
+	required int64 unixTimestamp  = 1;
+	
+	oneof payload {
+		 HeartBeat heartbeat = 2;
+		 HeartBeatResponse heartBeatResponse = 3;	
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

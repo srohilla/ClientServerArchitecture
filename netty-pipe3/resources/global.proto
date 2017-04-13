@@ -1,0 +1,24 @@
+syntax = "proto2";
+option optimize_for = SPEED;
+option java_package = "pipe.work";
+
+import "common.proto";
+import "storage.proto";
+
+message GlobalCommandMessage {
+   required Header header = 1;
+
+    oneof payload {
+      // a client (external) sanity check for testing
+      bool ping = 2;
+
+      string message = 3;
+      
+      Failure err = 4;
+
+	  Query query = 5;
+	  
+	  Response response = 6;
+
+   }
+}

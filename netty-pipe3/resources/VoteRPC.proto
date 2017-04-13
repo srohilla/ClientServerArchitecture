@@ -1,0 +1,65 @@
+
+syntax = "proto2";
+option java_package = "pipe.work";
+
+//									//RequestVoteRPC//
+//-------------------------------------------------------------------------------------
+
+/* 							Message inteded for election
+							Used by candidates election term, its own id and
+							Latest timestamp is sent 
+*/				
+
+//--------------------------------------------------------------------------------------
+
+
+message RequestVoteRPC{
+
+required int32 term = 1;
+required string candidateId = 2;	
+required int64 timeStampOnLatestUpdate = 3;
+
+}
+
+
+//									//ResponseVote//
+//-------------------------------------------------------------------------------------
+
+/* 					Followers or other Candidates sent the response based upon
+					the data
+*/				
+//-------------------------------------------------------------------------------------
+
+message ResponseVoteRPC{
+
+required int32 term = 1;
+required IsVoteGranted isVoteGranted = 2;
+
+
+enum IsVoteGranted{
+	
+	YES = 0;
+	NO = 1;
+	
+	}
+
+}
+
+
+//									//VoteRpcPacket//
+//-------------------------------------------------------------------------------------
+
+/*  Either of the RequestVote or ResponseVote is created and sent through this message
+*/				
+
+//--------------------------------------------------------------------------------------
+
+
+message VoteRPCPacket{
+	required int64 unixTimestamp  = 1;
+	oneof payload {
+		RequestVoteRPC requestVoteRPC = 2;
+		ResponseVoteRPC responseVoteRPC = 3;	
+}
+
+}

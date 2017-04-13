@@ -1,0 +1,30 @@
+syntax = "proto2";
+option java_package = "pipe.work";
+import "resources/AppendEntriesRPC.proto";
+import "resources/HeartBeatRPC.proto";
+import "resources/VoteRPC.proto";
+import "resources/Ping.proto";
+
+	
+
+
+//									//WorkMessage//
+//-------------------------------------------------------------------------------------
+
+/* 						Either of mentioned the Packets are constructed 
+						and sent through Workmessage
+*/				
+
+//-------------------------------------------------------------------------------------
+message WorkMessage{
+
+	required int64 unixTimeStamp = 1;
+	oneof payload{ 
+	 AppendEntriesPacket appendEntriesPacket = 2;
+	 HeartBeatPacket heartBeatPacket = 3;
+	 VoteRPCPacket	voteRPCPacket =4;
+	 PingMessage trivialPing =5;
+	 
+	}
+
+}

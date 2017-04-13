@@ -1,0 +1,25 @@
+syntax = "proto2";
+option optimize_for = SPEED;
+option java_package = "pipe.common";
+
+message Body { 
+
+optional int32 block_no = 1;
+optional int32 num_of_blocks = 2;
+
+enum BodyType {
+READFILE = 1;
+WRITEFILE = 2;
+DELETEFILE = 3;
+UPDATEFILE = 4;
+}
+
+optional BodyType bodyType = 3;
+required string sender = 4;
+required string filename = 5;
+optional bytes block_data = 6;
+optional string requestId = 7;
+optional bool is_global = 8;
+
+
+}
