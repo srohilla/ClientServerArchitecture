@@ -100,7 +100,7 @@ public class WriteClient {
 				msg.setRequestType(RequestType.WRITEFILE);
 				WriteBody.Builder rwb  = WriteBody.newBuilder();
 				//rwb.setFileId("1");
-				rwb.setFileExt(f.getName().substring(f.getName().substring(f.getName().lastIndexOf(".") + 1)));
+				rwb.setFileExt(f.getName().substring(f.getName().lastIndexOf(".") + 1)));
 				rwb.setFilename(f.getName());
 				rwb.setNumOfChunks(chunks);
 				Header.Builder header= Header.newBuilder();
