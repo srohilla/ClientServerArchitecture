@@ -1,5 +1,7 @@
 package gash.router.server;
 
+import java.util.Queue;
+
 import gash.router.container.RoutingConf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -20,11 +22,20 @@ import routing.Pipe.CommandMessage;
 public class CommandInit extends ChannelInitializer<SocketChannel> {
 	boolean compress = false;
 	RoutingConf conf;
+	Queue<CommandMessage> messageQue; 
 
 	public CommandInit(RoutingConf conf, boolean enableCompression) {
 		super();
 		compress = enableCompression;
+		this.conf = conf; 
+	}
+
+	
+	public CommandInit(RoutingConf conf, boolean enableCompression, Queue<CommandMessage> messageQue) {
+		super();
+		compress = enableCompression;
 		this.conf = conf;
+		this.messageQue = messageQue; 
 	}
 
 	@Override
@@ -53,6 +64,6 @@ public class CommandInit extends ChannelInitializer<SocketChannel> {
 
 
 		// our server processor (new instance for each connection)
-		pipeline.addLast("handler", new CommandHandler(conf));
+		pipeline.addLast("handler", new CommandHandler(conf, messageQue));
 	}
 }

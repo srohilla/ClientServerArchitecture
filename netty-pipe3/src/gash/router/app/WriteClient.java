@@ -1,10 +1,6 @@
-
 package gash.router.app;
 
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,55 +72,45 @@ public class WriteClient {
 	}
 
 	
-	
-	
-	public static void writeFile(File f){
+	public static void writeFile(String filepath){
 		
-			int partCounter = 1;
-			int chunkSize = 1024;
-			long chunks = f.length()/chunkSize;
-			//ArrayList<Byte> buffer = new ArrayList<>();
-			byte[] data = new byte[chunkSize];
-			try (BufferedInputStream bis = new BufferedInputStream(
-			new FileInputStream(f))) {//try-with-resources to ensure closing stream
-			String name = f.getName();
-			
-			int tmp = 0;
-			while ((tmp = bis.read(data)) > 0) {
-			
-				ByteString byteStringData=ByteString.copyFrom(data);
-				
-				CommandMessage.Builder command = CommandMessage.newBuilder();
-				Request.Builder msg = Request.newBuilder();
-				msg.setRequestType(RequestType.WRITEFILE);
-				WriteBody.Builder rwb  = WriteBody.newBuilder();
-				//rwb.setFileId("1");
-				rwb.setFileExt(f.getName().lastIndexOf(".") + 1);
-				rwb.setFilename(f.getName());
-				rwb.setNumOfChunks(chunks);
-				Header.Builder header= Header.newBuilder();
-				header.setNodeId(1);
-				command.setHeader(header);
-				Chunk.Builder chunk = Chunk.newBuilder();
-				chunk.setChunkId(partCounter++);
-				chunk.setChunkSize(chunkSize);
-				chunk.setChunkData(byteStringData);
-				rwb.setChunk(chunk);
-				msg.setRwb(rwb);
-				command.setRequest(msg);
-				
-				CommandMessage commandMessage = command.build();
-				
-				channel.channel().writeAndFlush(commandMessage);
-				
-				if (channel.isDone() && channel.isSuccess()) {
-					System.out.println("Msg sent succesfully:");
-				}
+		try {
 
+			Path path = Paths.get(filepath);
+			byte[] data;
+			data = Files.readAllBytes(path);
+			ByteString byteStringData=ByteString.copyFrom(data);
+		//	WorkMessage.Builder work = WorkMessage.newBuilder();
+			CommandMessage.Builder command = CommandMessage.newBuilder();
+		    Request.Builder msg = Request.newBuilder();
+			msg.setRequestType(RequestType.WRITEFILE);
+			WriteBody.Builder rwb  = WriteBody.newBuilder();
+			rwb.setFileId("1");
+			rwb.setFileExt("txt");
+			rwb.setFilename("test1");
+			rwb.setNumOfChunks(1);
+			Header.Builder header= Header.newBuilder();
+			header.setNodeId(1);
+			command.setHeader(header);
+			Chunk.Builder chunk = Chunk.newBuilder();
+			chunk.setChunkId(1);
+			chunk.setChunkSize(12);
+			chunk.setChunkData(byteStringData);
+			rwb.setChunk(chunk);
+			msg.setRwb(rwb);
+			command.setRequest(msg);
+			
+		
+			
+		//	work.setUnixTimeStamp(ServerUtils.getCurrentUnixTimeStamp());
+		//	WorkMessage workMessage= work.build();
+			CommandMessage commandMessage = command.build();
+			
+			channel.channel().writeAndFlush(commandMessage);
+			
+			if (channel.isDone() && channel.isSuccess()) {
+			System.out.println("Msg sent succesfully:");
 			}
-		
-		
-		
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -137,13 +123,12 @@ public class WriteClient {
 	public static void main(String[] args) {
 		
 		String host = "127.0.0.1";
-		int port = 4168;
+		int port = 4112;
 		
 		System.out.println("Sent the message");
 		
 		WriteClient.init(host, port);
-		File file = new File("/Users/seemarohilla/Desktop/test.txt");
-		WriteClient.writeFile(file);
+		WriteClient.writeFile("/home/jayam/Desktop/test.txt");
 		//AdapterClientAPI.post("vinit_adapter".getBytes());;
 	
 		while(true){

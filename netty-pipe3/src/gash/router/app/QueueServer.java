@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package gash.router.server;
+package gash.router.app;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -26,6 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gash.router.container.RoutingConf;
+import gash.router.server.CommandInit;
+import gash.router.server.ServerState;
+import gash.router.server.WorkInit;
 import gash.router.server.edges.EdgeMonitor;
 import gash.router.server.raft.NodeState;
 import gash.router.server.tasks.NoOpBalancer;
@@ -36,11 +39,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 import java.util.Queue;
 import java.util.LinkedList;
+
 import routing.Pipe.CommandMessage;
 
-public class MessageServer {
+public class QueueServer {
 	protected static Logger logger = LoggerFactory.getLogger("server");
 
 	protected static HashMap<Integer, ServerBootstrap> bootstrap = new HashMap<Integer, ServerBootstrap>();
@@ -50,22 +55,20 @@ public class MessageServer {
 
 	protected RoutingConf conf;
 	protected boolean background = false;
-	protected Queue<CommandMessage> leaderMessageQue = new LinkedList<CommandMessage>();
-	protected Queue<CommandMessage> nonLeaderMessageQue = new LinkedList<CommandMessage>();
+	protected Queue<CommandMessage> messageQue = new LinkedList<CommandMessage>();
 
 	/**
 	 * initialize the server with a configuration of it's resources
 	 * 
 	 * @param cfg
 	 */
-	public MessageServer(File cfg) {
+	public QueueServer(File cfg) {
 		init(cfg);
 	}
 
-	public MessageServer(RoutingConf conf) {
+	public QueueServer(RoutingConf conf) {
 		this.conf = conf;
-		this.leaderMessageQue = new LinkedList<CommandMessage>();
-		this.nonLeaderMessageQue = new LinkedList<CommandMessage>();
+		this.messageQue = new LinkedList<CommandMessage>();
 	}
 
 	public void release() {
@@ -74,40 +77,37 @@ public class MessageServer {
 	public void startMessageQueWatcher(){
 		Thread queWatcher = new Thread(new Runnable(){
 			public void run(){
-				logger.info("...(@>@)... handling message Queue");
+				logger.info("^^^ (@>@) ^^^  handling message Queue");
 				try{
 					while(true){
-						if(leaderMessageQue.size() > 0){
-							CommandMessage receivedCommand = leaderMessageQue.poll();
-							logger.info("...(@>@)... Processed from message Que : " + receivedCommand.toString());
-						}
-						else{
-							// Request work from queueServer
-							
+						if(messageQue.size() > 0){
+							CommandMessage receivedCommand = messageQue.poll();
+							logger.info("^^^ (@>@) ^^^ Processed from message Que : " + receivedCommand.toString());
+							logger.info("^^^ (@>@) ^^^ message Que size : " + messageQue.size());
 						}
 						Thread.sleep(100);	
 					}
 				}
 				catch(InterruptedException e){
-					logger.info("...(@>@)... Some how the queueWathcher is gone ... ");
+					logger.info("^^^ (@>@) ^^^ Some how the queueWathcher is gone ... ");
 				}
 			}
 		});
 		
 		queWatcher.start();
-		logger.info("...(@>@)... the wathching thread on messageQue started ");
+		logger.info("^^^ (@>@) ^^^ the wathching thread on messageQue started ");
 	}
 	
 	public void startServer() {
-		StartWorkCommunication comm = new StartWorkCommunication(conf);
+//		StartWorkCommunication comm = new StartWorkCommunication(conf);
 		logger.info("Work starting");
 		startMessageQueWatcher();
 		// We always start the worker in the background
-		Thread cthread = new Thread(comm);
-		cthread.start();
+	//	Thread cthread = new Thread(comm);
+		//cthread.start();
 
 		if (!conf.isInternalNode()) {
-			StartCommandCommunication comm2 = new StartCommandCommunication(conf, leaderMessageQue);
+			StartCommandCommunication comm2 = new StartCommandCommunication(conf, messageQue);
 			logger.info("Command starting");
 
 			if (background) {
@@ -153,8 +153,8 @@ public class MessageServer {
 		}
 		
 		//LEADER ELECTION
-       NodeState.getInstance().setNodeState(NodeState.FOLLOWER);
-       System.out.println("Node State :"+NodeState.getNodestate());
+      // NodeState.getInstance().setNodeState(NodeState.FOLLOWER);
+      // System.out.println("Node State :"+NodeState.getNodestate());
 		
 	}
 
@@ -171,7 +171,7 @@ public class MessageServer {
 	private static class StartCommandCommunication implements Runnable {
 		RoutingConf conf;
 		Queue<CommandMessage> messageQue; 
-		public StartCommandCommunication(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, Queue<CommandMessage> nonLeaderMessageQue) {
+		public StartCommandCommunication(RoutingConf conf, Queue<CommandMessage> messageQue) {
 			this.conf = conf;
 			this.messageQue = messageQue;
 		}

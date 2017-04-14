@@ -26,6 +26,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import pipe.common.Common.Failure;
 import routing.Pipe.CommandMessage;
+import java.util.Queue;
+
 
 /**
  * The message handler processes json messages that are delimited by a 'newline'
@@ -38,10 +40,14 @@ import routing.Pipe.CommandMessage;
 public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	protected static Logger logger = LoggerFactory.getLogger("cmd");
 	protected RoutingConf conf;
-
-	public CommandHandler(RoutingConf conf) {
+	protected Queue<CommandMessage> leaderMessageQue;
+	protected Queue<CommandMessage> nonLeaderMessageQue;
+	public CommandHandler(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, 
+			Queue<CommandMessage> nonLeaderMessageQue) {
 		if (conf != null) {
 			this.conf = conf;
+			this.leaderMessageQue = leaderMessageQue;
+			this.nonLeaderMessageQue = nonLeaderMessageQue;
 		}
 	}
 
@@ -71,10 +77,9 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 				logger.info(msg.getMessage());
 			}
 			else if (msg.hasRequest() == true) {
+				System.out.println("OH i got a file to write");
+				NodeState.getInstance().getState().handleWriteFile(msg.getRequest().getRwb());
 				
-				 System.out.println("OH i got a file to write");
-
-					NodeState.getInstance().getState().handleWriteFile(msg.getRequest().getRwb());
 			}
 			else {
 				//TODO
@@ -107,7 +112,10 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
-		handleMessage(msg, ctx.channel());
+		System.out.println(" Pushing haschode to messageQue");
+		//messageQue.add(msg);
+		if(msg.getRequest().getRequestType())
+		//handleMessage(msg, ctx.channel());
 	}
 
 	@Override
