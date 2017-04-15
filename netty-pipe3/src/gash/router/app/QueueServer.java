@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import gash.router.container.RoutingConf;
 import gash.router.server.CommandInit;
+import gash.router.server.QueueCommandInit;
 import gash.router.server.ServerState;
 import gash.router.server.WorkInit;
 import gash.router.server.edges.EdgeMonitor;
@@ -193,7 +194,7 @@ public class QueueServer {
 				// b.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR);
 
 				boolean compressComm = false;
-				b.childHandler(new CommandInit(conf, compressComm, leaderMessageQue, nonLeaderMessageQue));
+				b.childHandler(new QueueCommandInit(conf, compressComm, leaderMessageQue, nonLeaderMessageQue));
 
 				// Start the server.
 				logger.info("Starting command server (" + conf.getNodeId() + "), listening on port = "

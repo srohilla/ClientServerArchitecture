@@ -1,18 +1,3 @@
-/**
- * Copyright 2016 Gash.
- *
- * This file and intellectual content is protected under the Apache License, version 2.0
- * (the "License"); you may not use this file except in compliance with the
- * License.  You may obtain a copy of the License at:
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
 package gash.router.server;
 
 import org.slf4j.Logger;
@@ -28,6 +13,8 @@ import pipe.common.Common.Failure;
 import pipe.common.Common.Request.RequestType;
 import routing.Pipe.CommandMessage;
 
+import java.util.Queue;
+
 
 /**
  * The message handler processes json messages that are delimited by a 'newline'
@@ -37,13 +24,17 @@ import routing.Pipe.CommandMessage;
  * @author gash
  * 
  */
-public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> {
+public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	protected static Logger logger = LoggerFactory.getLogger("cmd");
 	protected RoutingConf conf;
-	
-	public CommandHandler(RoutingConf conf) {
+	protected Queue<CommandMessage> leaderMessageQue;
+	protected Queue<CommandMessage> nonLeaderMessageQue;
+	public QueueCommandHandler(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, 
+			Queue<CommandMessage> nonLeaderMessageQue) {
 		if (conf != null) {
 			this.conf = conf;
+			this.leaderMessageQue = leaderMessageQue;
+			this.nonLeaderMessageQue = nonLeaderMessageQue;
 		}
 	}
 
@@ -108,9 +99,15 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
+		System.out.println(" Pushing haschode to messageQue");
+
+		// if it is a write message
+		if(msg.getRequest().getRequestType().getNumber() == RequestType.WRITEFILE_VALUE)
+			leaderMessageQue.add(msg);
 		
-		logger.info("Message received by worker(leader/follower) to process");
-		handleMessage(msg, ctx.channel());	
+		else
+			nonLeaderMessageQue.add(msg);
+		
 	}
 
 	@Override

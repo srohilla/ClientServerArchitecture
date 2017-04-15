@@ -25,20 +25,29 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pipe.common.Common.Request;
+import pipe.common.Common.WriteBody;
+import pipe.common.Common.Request.RequestType;
 import gash.router.container.RoutingConf;
+import gash.router.server.edges.EdgeInfo;
+import gash.router.server.edges.EdgeList;
 import gash.router.server.edges.EdgeMonitor;
 import gash.router.server.raft.NodeState;
 import gash.router.server.tasks.NoOpBalancer;
 import gash.router.server.tasks.TaskList;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 import java.util.Queue;
 import java.util.LinkedList;
+
 import routing.Pipe.CommandMessage;
+import routing.Pipe.WorkStealingRequest;
 
 public class MessageServer {
 	protected static Logger logger = LoggerFactory.getLogger("server");
@@ -50,7 +59,7 @@ public class MessageServer {
 
 	protected RoutingConf conf;
 	protected boolean background = false;
-	
+	protected CommandMessage work;
 
 	/**
 	 * initialize the server with a configuration of it's resources
@@ -69,6 +78,24 @@ public class MessageServer {
 	}
 
 	public void startWorkWatcher(){
+		CommandMessage.Builder command = CommandMessage.newBuilder();
+		WorkStealingRequest.Builder stealRequest = WorkStealingRequest.newBuilder();
+		stealRequest.setHost("someIP");
+		stealRequest.setPort(4567);
+		command.setWsr(stealRequest); // setting the work stealing request
+		
+		CommandMessage stealCommandMessage = command.build();
+		ServerState state = NodeState.getInstance().getServerState();
+		EdgeMonitor emon = state.getEmon();
+		
+		EdgeList edgeList = emon.getOutboundEdges();
+		
+		EdgeInfo edgeInfo = edgeList.getNode(0);
+		Channel channel = edgeInfo.getChannel();
+		
+		channel.writeAndFlush(stealCommandMessage);
+		
+		
 		Thread queWatcher = new Thread(new Runnable(){
 			public void run(){
 				logger.info("...(@>@)... handling message Queue");
@@ -81,7 +108,6 @@ public class MessageServer {
 //						}
 //						else{
 //							// Request work from queueServer
-//							
 //						}
 						Thread.sleep(100);	
 					}

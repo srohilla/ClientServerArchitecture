@@ -19,14 +19,25 @@ import routing.Pipe.CommandMessage;
  * @author gash
  *
  */
-public class CommandInit extends ChannelInitializer<SocketChannel> {
+public class QueueCommandInit extends ChannelInitializer<SocketChannel> {
 	boolean compress = false;
 	RoutingConf conf;
-	
-	public CommandInit(RoutingConf conf, boolean enableCompression) {
+	Queue<CommandMessage> leaderMessageQue; 
+	Queue<CommandMessage> nonLeaderMessageQue; 
+
+	public QueueCommandInit(RoutingConf conf, boolean enableCompression) {
 		super();
 		compress = enableCompression;
 		this.conf = conf; 
+	}
+
+	
+	public QueueCommandInit(RoutingConf conf, boolean enableCompression, Queue<CommandMessage> leaderMessageQue, Queue<CommandMessage> nonLeaderMessageQue) {
+		super();
+		compress = enableCompression;
+		this.conf = conf;
+		this.leaderMessageQue = leaderMessageQue;
+		this.nonLeaderMessageQue = nonLeaderMessageQue; 
 	}
 
 	@Override
@@ -55,6 +66,6 @@ public class CommandInit extends ChannelInitializer<SocketChannel> {
 
 
 		// our server processor (new instance for each connection)
-		pipeline.addLast("handler", new CommandHandler(conf));
+		pipeline.addLast("handler", new QueueCommandHandler(conf, leaderMessageQue, nonLeaderMessageQue));
 	}
 }
