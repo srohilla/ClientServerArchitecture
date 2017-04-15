@@ -25,7 +25,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import pipe.common.Common.Failure;
+import pipe.common.Common.Request.RequestType;
 import routing.Pipe.CommandMessage;
+
 import java.util.Queue;
 
 
@@ -113,9 +115,14 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
 		System.out.println(" Pushing haschode to messageQue");
-		//messageQue.add(msg);
-		if(msg.getRequest().getRequestType())
-		//handleMessage(msg, ctx.channel());
+
+		// if it is a write message
+		if(msg.getRequest().getRequestType().getNumber() == RequestType.WRITEFILE_VALUE)
+			leaderMessageQue.add(msg);
+		
+		else
+			nonLeaderMessageQue.add(msg);
+		
 	}
 
 	@Override

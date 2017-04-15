@@ -55,7 +55,8 @@ public class QueueServer {
 
 	protected RoutingConf conf;
 	protected boolean background = false;
-	protected Queue<CommandMessage> messageQue = new LinkedList<CommandMessage>();
+	protected Queue<CommandMessage> leaderMessageQue = new LinkedList<CommandMessage>();
+	protected Queue<CommandMessage> nonLeaderMessageQue = new LinkedList<CommandMessage>();
 
 	/**
 	 * initialize the server with a configuration of it's resources
@@ -68,7 +69,8 @@ public class QueueServer {
 
 	public QueueServer(RoutingConf conf) {
 		this.conf = conf;
-		this.messageQue = new LinkedList<CommandMessage>();
+		this.leaderMessageQue = new LinkedList<CommandMessage>();
+		this.nonLeaderMessageQue = new LinkedList<CommandMessage>();
 	}
 
 	public void release() {
@@ -80,11 +82,6 @@ public class QueueServer {
 				logger.info("^^^ (@>@) ^^^  handling message Queue");
 				try{
 					while(true){
-						if(messageQue.size() > 0){
-							CommandMessage receivedCommand = messageQue.poll();
-							logger.info("^^^ (@>@) ^^^ Processed from message Que : " + receivedCommand.toString());
-							logger.info("^^^ (@>@) ^^^ message Que size : " + messageQue.size());
-						}
 						Thread.sleep(100);	
 					}
 				}
@@ -107,7 +104,7 @@ public class QueueServer {
 		//cthread.start();
 
 		if (!conf.isInternalNode()) {
-			StartCommandCommunication comm2 = new StartCommandCommunication(conf, messageQue);
+			StartCommandCommunication comm2 = new StartCommandCommunication(conf, leaderMessageQue, nonLeaderMessageQue);
 			logger.info("Command starting");
 
 			if (background) {
@@ -170,10 +167,12 @@ public class QueueServer {
 	 */
 	private static class StartCommandCommunication implements Runnable {
 		RoutingConf conf;
-		Queue<CommandMessage> messageQue; 
-		public StartCommandCommunication(RoutingConf conf, Queue<CommandMessage> messageQue) {
+		Queue<CommandMessage> leaderMessageQue; 
+		Queue<CommandMessage> nonLeaderMessageQue; 
+		public StartCommandCommunication(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, Queue<CommandMessage> nonLeaderMessageQue) {
 			this.conf = conf;
-			this.messageQue = messageQue;
+			this.leaderMessageQue = leaderMessageQue;
+			this.nonLeaderMessageQue = nonLeaderMessageQue;
 		}
 
 		public void run() {
@@ -194,7 +193,7 @@ public class QueueServer {
 				// b.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR);
 
 				boolean compressComm = false;
-				b.childHandler(new CommandInit(conf, compressComm, messageQue));
+				b.childHandler(new CommandInit(conf, compressComm, leaderMessageQue, nonLeaderMessageQue));
 
 				// Start the server.
 				logger.info("Starting command server (" + conf.getNodeId() + "), listening on port = "

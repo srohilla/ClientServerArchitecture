@@ -50,8 +50,7 @@ public class MessageServer {
 
 	protected RoutingConf conf;
 	protected boolean background = false;
-	protected Queue<CommandMessage> leaderMessageQue = new LinkedList<CommandMessage>();
-	protected Queue<CommandMessage> nonLeaderMessageQue = new LinkedList<CommandMessage>();
+	
 
 	/**
 	 * initialize the server with a configuration of it's resources
@@ -64,27 +63,26 @@ public class MessageServer {
 
 	public MessageServer(RoutingConf conf) {
 		this.conf = conf;
-		this.leaderMessageQue = new LinkedList<CommandMessage>();
-		this.nonLeaderMessageQue = new LinkedList<CommandMessage>();
 	}
 
 	public void release() {
 	}
 
-	public void startMessageQueWatcher(){
+	public void startWorkWatcher(){
 		Thread queWatcher = new Thread(new Runnable(){
 			public void run(){
 				logger.info("...(@>@)... handling message Queue");
 				try{
 					while(true){
-						if(leaderMessageQue.size() > 0){
-							CommandMessage receivedCommand = leaderMessageQue.poll();
-							logger.info("...(@>@)... Processed from message Que : " + receivedCommand.toString());
-						}
-						else{
-							// Request work from queueServer
-							
-						}
+						// Should request work from the QueueServer
+//						if(work, do it ){
+//							 
+//							logger.info("...(@>@)... Processed from message Que : " + receivedCommand.toString());
+//						}
+//						else{
+//							// Request work from queueServer
+//							
+//						}
 						Thread.sleep(100);	
 					}
 				}
@@ -101,13 +99,13 @@ public class MessageServer {
 	public void startServer() {
 		StartWorkCommunication comm = new StartWorkCommunication(conf);
 		logger.info("Work starting");
-		startMessageQueWatcher();
+		startWorkWatcher();
 		// We always start the worker in the background
 		Thread cthread = new Thread(comm);
 		cthread.start();
 
 		if (!conf.isInternalNode()) {
-			StartCommandCommunication comm2 = new StartCommandCommunication(conf, leaderMessageQue);
+			StartCommandCommunication comm2 = new StartCommandCommunication(conf);
 			logger.info("Command starting");
 
 			if (background) {
@@ -170,10 +168,9 @@ public class MessageServer {
 	 */
 	private static class StartCommandCommunication implements Runnable {
 		RoutingConf conf;
-		Queue<CommandMessage> messageQue; 
-		public StartCommandCommunication(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, Queue<CommandMessage> nonLeaderMessageQue) {
+		
+		public StartCommandCommunication(RoutingConf conf) {
 			this.conf = conf;
-			this.messageQue = messageQue;
 		}
 
 		public void run() {
@@ -194,7 +191,7 @@ public class MessageServer {
 				// b.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR);
 
 				boolean compressComm = false;
-				b.childHandler(new CommandInit(conf, compressComm, messageQue));
+				b.childHandler(new CommandInit(conf, compressComm));
 
 				// Start the server.
 				logger.info("Starting command server (" + conf.getNodeId() + "), listening on port = "
