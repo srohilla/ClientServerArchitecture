@@ -22,14 +22,14 @@ import routing.Pipe.CommandMessage;
  */
 public class CommandInit extends ChannelInitializer<SocketChannel> {
 	boolean compress = false;
-	//ServerState state;
+	ServerState state;
 	RoutingConf conf;
 	
-	public CommandInit(RoutingConf conf, boolean enableCompression) {
+	public CommandInit(RoutingConf conf, ServerState state, boolean enableCompression) {
 		super();
 		compress = enableCompression;
 		this.conf = conf; 
-		//this.state = state;
+		this.state = state;
 	}
 
 	@Override
@@ -58,6 +58,6 @@ public class CommandInit extends ChannelInitializer<SocketChannel> {
 
 
 		// our server processor (new instance for each connection)
-		pipeline.addLast("handler", new CommandHandler(conf));
+		pipeline.addLast("handler", new CommandHandler(conf, state));
 	}
 }

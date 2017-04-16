@@ -60,13 +60,17 @@ public class MessageServer {
 
 	protected RoutingConf conf;
 	protected boolean background = false;
-	//protected ServerState state;
+	static ServerState state;
 
 	/**
 	 * initialize the server with a configuration of it's resources
 	 * 
 	 * @param cfg
 	 */
+	public static ServerState getServerState(){
+		return state;
+	}
+	
 	public MessageServer(File cfg) {
 		init(cfg);
 	}
@@ -126,6 +130,10 @@ public class MessageServer {
 	
 	public void startServer() {
 		StartWorkCommunication comm = new StartWorkCommunication(conf);
+		
+		if(state != null){
+			logger.debug("State is created");
+		}
 		logger.info("Work starting");
 		//startWorkWatcher();
 		// We always start the worker in the background
@@ -133,7 +141,7 @@ public class MessageServer {
 		cthread.start();
 
 		if (!conf.isInternalNode()) {
-			StartCommandCommunication comm2 = new StartCommandCommunication(conf);
+			StartCommandCommunication comm2 = new StartCommandCommunication(state, conf);
 			logger.info("Command starting");
 
 			if (background) {
@@ -196,18 +204,21 @@ public class MessageServer {
 	 */
 	private static class StartCommandCommunication implements Runnable {
 		RoutingConf conf;
+		ServerState state;
 		
-		public StartCommandCommunication(RoutingConf conf) {
+		public StartCommandCommunication(ServerState state, RoutingConf conf) {
 			this.conf = conf;
-			//this.state = state;
+			this.state = state;
 		}
-
+		
+		
+		
 		public void run() {
 			// construct boss and worker threads (num threads = number of cores)
 
 			EventLoopGroup bossGroup = new NioEventLoopGroup();
 			EventLoopGroup workerGroup = new NioEventLoopGroup();
-
+			
 			try {
 				ServerBootstrap b = new ServerBootstrap();
 				bootstrap.put(conf.getCommandPort(), b);
@@ -220,7 +231,7 @@ public class MessageServer {
 				// b.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR);
 
 				boolean compressComm = false;
-				b.childHandler(new CommandInit(conf, compressComm));
+				b.childHandler(new CommandInit(conf, state, compressComm));
 
 				// Start the server.
 				logger.info("Starting command server (" + conf.getNodeId() + "), listening on port = "
@@ -251,8 +262,7 @@ public class MessageServer {
 	 *            The port to listen to
 	 */
 	private static class StartWorkCommunication implements Runnable {
-		ServerState state;
-
+		
 		public StartWorkCommunication(RoutingConf conf) {
 			if (conf == null)
 				throw new RuntimeException("missing conf");

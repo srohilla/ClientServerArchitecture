@@ -42,11 +42,14 @@ import routing.Pipe.CommandMessage;
 public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	protected static Logger logger = LoggerFactory.getLogger("cmd");
 	protected RoutingConf conf;
-	//protected ServerState state;
+	protected ServerState state;
 	
-	public CommandHandler(RoutingConf conf) {
+	public CommandHandler(RoutingConf conf, ServerState state) {
 		if (conf != null) {
 			this.conf = conf;
+		}
+		if(state != null){
+			this.state = state;
 		}
 	}
 
@@ -113,7 +116,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
-		ServerState state = NodeState.getInstance().getServerState();
+		//ServerState state = NodeState.getInstance().getServerState();
 		if(state.getTasks() != null){
 			state.getTasks().addTask(msg);
 		}
