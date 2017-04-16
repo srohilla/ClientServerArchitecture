@@ -104,8 +104,11 @@ public class QueueServer {
 		logger.info("Work starting");
 		//startMessageQueWatcher();
 		// We always start the worker in the background
-		Thread cthread = new Thread(comm);
-		cthread.start();
+		/*
+		No need to listen at workPort !!
+		*/
+		//Thread cthread = new Thread(comm);
+		//cthread.start();
 
 		//if (!conf.isInternalNode()) {
 			StartCommandCommunication comm2 = new StartCommandCommunication(conf, leaderMessageQue, nonLeaderMessageQue);
