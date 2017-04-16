@@ -38,7 +38,13 @@ public class FollowerState extends State implements Runnable{
 		System.out.println("Follower state");
 		gash.router.logger.Logger.DEBUG("-----------------------FOLLOWER SERVICE STARTED ----------------------------");
 		initFollower();
-
+		
+		/*
+		 * What should happen to existing thread of execution after the node state changes
+		 * to CANDIDATE?
+		 * 
+		 * Why do we need to check here for the value of node state with FOLLOWER?
+		 */
 		fThread = new Thread(){
 		    public void run(){
 				while (running) {

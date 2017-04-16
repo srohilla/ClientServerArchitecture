@@ -2,6 +2,7 @@ package gash.router.server;
 
 import java.util.Queue;
 
+
 import gash.router.container.RoutingConf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -21,12 +22,14 @@ import routing.Pipe.CommandMessage;
  */
 public class CommandInit extends ChannelInitializer<SocketChannel> {
 	boolean compress = false;
+	//ServerState state;
 	RoutingConf conf;
 	
 	public CommandInit(RoutingConf conf, boolean enableCompression) {
 		super();
 		compress = enableCompression;
 		this.conf = conf; 
+		//this.state = state;
 	}
 
 	@Override

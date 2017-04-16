@@ -16,6 +16,7 @@
 package gash.router.server;
 
 import org.slf4j.Logger;
+
 import org.slf4j.LoggerFactory;
 
 import gash.router.app.ServerApp;
@@ -24,8 +25,8 @@ import gash.router.server.raft.NodeState;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import pipe.common.Common.Failure;
-import pipe.common.Common.Request.RequestType;
+//import pipe.common.Common.Failure;
+//import pipe.common.Common.Request.RequestType;
 import routing.Pipe.CommandMessage;
 
 
@@ -40,6 +41,7 @@ import routing.Pipe.CommandMessage;
 public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	protected static Logger logger = LoggerFactory.getLogger("cmd");
 	protected RoutingConf conf;
+	//protected ServerState state;
 	
 	public CommandHandler(RoutingConf conf) {
 		if (conf != null) {
@@ -55,13 +57,14 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	 * @param msg
 	 */
 	public void handleMessage(CommandMessage msg, Channel channel) {
+		
 		if (msg == null) {
 			// TODO add logging
 			System.out.println("ERROR: Unexpected content - " + msg);
 			return;
 		}
        // ServerApp.propagateMessage(msg);
-		PrintUtil.printCommand(msg);
+		//PrintUtil.printCommand(msg);
          
 		try {
 			// TODO How can you implement this without if-else statements?
@@ -84,15 +87,16 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 
 		} catch (Exception e) {
 			// TODO add logging
-			Failure.Builder eb = Failure.newBuilder();
+			/*Failure.Builder eb = Failure.newBuilder();
 			eb.setId(conf.getNodeId());
 			eb.setRefId(msg.getHeader().getNodeId());
 			eb.setMessage(e.getMessage());
 			CommandMessage.Builder rb = CommandMessage.newBuilder(msg);
 			rb.setErr(eb);
-			channel.write(rb.build());
+			channel.write(rb.build());*/
 		}
-
+		
+		NodeState.getInstance().getServerState().getTasks().dequeue();
 		System.out.flush();
 	}
 
@@ -108,7 +112,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
-		
+		NodeState.getInstance().getServerState().getTasks().addTask(msg);
 		logger.info("Message received by worker(leader/follower) to process");
 		handleMessage(msg, ctx.channel());	
 	}

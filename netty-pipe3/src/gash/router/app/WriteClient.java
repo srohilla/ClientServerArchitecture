@@ -4,6 +4,10 @@ package gash.router.app;
 
 import java.io.BufferedInputStream;
 
+
+
+
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Files;
@@ -23,7 +27,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import pipe.common.Common.Chunk;
 import pipe.common.Common.Header;
 import pipe.common.Common.Request;
-import pipe.common.Common.Request.RequestType;
+import pipe.common.Common.TaskType;
+//import pipe.common.Common.Request.RequestType;
 import pipe.common.Common.WriteBody;
 import pipe.work.Work.WorkMessage;
 import routing.Pipe.CommandMessage;
@@ -97,7 +102,7 @@ public class WriteClient {
 				
 				CommandMessage.Builder command = CommandMessage.newBuilder();
 				Request.Builder msg = Request.newBuilder();
-				msg.setRequestType(RequestType.WRITEFILE);
+				msg.setRequestType(TaskType.WRITEFILE);
 				WriteBody.Builder rwb  = WriteBody.newBuilder();
 				//rwb.setFileId("1");
 				rwb.setFileExt(f.getName().substring(f.getName().lastIndexOf(".") + 1));

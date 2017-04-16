@@ -20,6 +20,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import routing.Pipe.CommandMessage;
+
 
 /**
 /**
@@ -29,10 +31,10 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TaskList {
-	/**
+	
 	protected static Logger logger = LoggerFactory.getLogger("work");
 
-	private LinkedBlockingDeque<Task> inbound;
+	private LinkedBlockingDeque<CommandMessage> inbound;
 	private int processed;
 	private int balanced;
 	private Rebalancer rebalance;
@@ -41,7 +43,7 @@ public class TaskList {
 		rebalance = rb;
 	}
 
-	public void addTask(Task t) {
+	public void addTask(CommandMessage t) {
 		inbound.add(t);
 	}
 
@@ -55,6 +57,17 @@ public class TaskList {
 
 	public int numBalanced() {
 		return balanced;
+	}
+	
+	public CommandMessage dequeue() {
+		CommandMessage t = null;
+		try {
+			t = inbound.take();
+			processed++;
+		} catch (InterruptedException e) {
+			logger.error("failed to dequeue a task", e);
+		}
+		return t;
 	}
 
 	/**
@@ -84,16 +97,7 @@ public class TaskList {
 	 * @return
 	 */
 	/**
-	protected Task dequeue() {
-		Task t = null;
-		try {
-			t = inbound.take();
-			processed++;
-		} catch (InterruptedException e) {
-			logger.error("failed to dequeue a task", e);
-		}
-		return t;
-	}
+	
 	
 	**/
 }

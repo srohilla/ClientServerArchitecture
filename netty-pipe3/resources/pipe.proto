@@ -2,7 +2,7 @@ syntax = "proto2";
 option optimize_for = SPEED;
 option java_package = "routing";
 
-import "resources/common.proto";
+import "common.proto";
 
 message CommandMessage {
    required Header header = 1;
@@ -10,9 +10,22 @@ message CommandMessage {
     oneof payload {
       // a client (external) sanity check for testing
       bool ping = 3;
-
       string message = 4;
       Request request =6;
-      Failure err = 5;
+      //Failure err = 5;
+      WorkStealingRequest wsr = 7;
+      AddNodeRequest anr = 8;
+      Response response = 9;
    }
+}
+
+message WorkStealingRequest{
+	required string host = 2;
+	required int32 port = 3;
+	required string nodeState = 4;
+}
+
+message AddNodeRequest{
+	required string host = 2;
+	required int32 port = 3;
 }

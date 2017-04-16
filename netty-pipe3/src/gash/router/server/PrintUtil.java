@@ -15,7 +15,7 @@
  */
 package gash.router.server;
 
-import pipe.common.Common.Failure;
+//import pipe.common.Common.Failure;
 import pipe.common.Common.Header;
 import pipe.work.Work.WorkMessage;
 import routing.Pipe.CommandMessage;
@@ -38,18 +38,20 @@ public class PrintUtil {
 		PrintUtil.printHeader(msg.getHeader());
 
 		System.out.print("\nCommand: ");
-		if (msg.hasErr()) {
+		//System.out.println("Failure");
+		/*if (msg.hasErr()) {
 			System.out.println("Failure");
-			System.out.println(PrintUtil.gap + "Code:    " + msg.getErr().getId());
-			System.out.println(PrintUtil.gap + "Ref ID:  " + msg.getErr().getRefId());
-			System.out.println(PrintUtil.gap + "Message: " + msg.getErr().getMessage());
-		} else if (msg.hasPing())
+			//System.out.println(PrintUtil.gap + "Code:    " + msg.getErr().getId());
+			//System.out.println(PrintUtil.gap + "Ref ID:  " + msg.getErr().getRefId());
+			//System.out.println(PrintUtil.gap + "Message: " + msg.getErr().getMessage());
+		} */ if (msg.hasPing())
 			System.out.println("Ping");
 		else if (msg.hasMessage()) {
 			System.out.println("Message");
 			System.out.println(PrintUtil.gap + "Msg:  " + msg.getMessage());
 		} else
 			System.out.println("Unknown");
+			
 	}
 
 	public static void printWork(WorkMessage msg) {
@@ -67,7 +69,7 @@ public class PrintUtil {
 		**/
 	}
 
-	public static void printFailure(Failure f) {
+	/*public static void printFailure(Failure f) {
 		System.out.println("ERROR: " + f.getId() + "." + f.getRefId() + " : " + f.getMessage());
-	}
+	}*/
 }

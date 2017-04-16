@@ -19,7 +19,8 @@ optional int32 max_hops = 10 [default = -1];
 }
 
 message Request { 
-required RequestType requestType = 3; 
+required RequestType requestType = 3;
+required Node client = 8; 
 enum RequestType {
 READFILE = 1;
 WRITEFILE = 2;
@@ -44,9 +45,11 @@ optional int32 num_of_chunks = 5;
 
 //this payload will be only present when chunks are missing on server during write
 //and will request client to send it again.
+
 message WriteResponse {
 repeated int32 ChunkId=1;
 }
+
 message Chunk{
 required int32 chunk_id = 1;
 required bytes chunk_data = 6;
@@ -66,6 +69,7 @@ required string filename = 2;
 optional string file_ext= 3;
 optional int32 num_of_chunks = 4;
 repeated ChunkLocation chunk_location = 5;
+required Chunk chunkdata = 6;
 }
 
 message ChunkLocation{

@@ -16,6 +16,8 @@
 package gash.router.app;
 
 import java.io.BufferedInputStream;
+
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,8 +58,8 @@ public class QueueServer {
 
 	protected RoutingConf conf;
 	protected boolean background = false;
-	protected Queue<CommandMessage> leaderMessageQue = new LinkedList<CommandMessage>();
-	protected Queue<CommandMessage> nonLeaderMessageQue = new LinkedList<CommandMessage>();
+	protected static Queue<CommandMessage> leaderMessageQue = new LinkedList<CommandMessage>();
+	protected static Queue<CommandMessage> nonLeaderMessageQue = new LinkedList<CommandMessage>();
 
 	/**
 	 * initialize the server with a configuration of it's resources
@@ -70,8 +72,8 @@ public class QueueServer {
 
 	public QueueServer(RoutingConf conf) {
 		this.conf = conf;
-		this.leaderMessageQue = new LinkedList<CommandMessage>();
-		this.nonLeaderMessageQue = new LinkedList<CommandMessage>();
+		QueueServer.leaderMessageQue = new LinkedList<CommandMessage>();
+		QueueServer.nonLeaderMessageQue = new LinkedList<CommandMessage>();
 	}
 
 	public void release() {
@@ -97,14 +99,14 @@ public class QueueServer {
 	}
 	
 	public void startServer() {
-//		StartWorkCommunication comm = new StartWorkCommunication(conf);
+		StartWorkCommunication comm = new StartWorkCommunication(conf);
 		logger.info("Work starting");
-		startMessageQueWatcher();
+		//startMessageQueWatcher();
 		// We always start the worker in the background
-	//	Thread cthread = new Thread(comm);
-		//cthread.start();
+		Thread cthread = new Thread(comm);
+		cthread.start();
 
-		if (!conf.isInternalNode()) {
+		//if (!conf.isInternalNode()) {
 			StartCommandCommunication comm2 = new StartCommandCommunication(conf, leaderMessageQue, nonLeaderMessageQue);
 			logger.info("Command starting");
 
@@ -113,7 +115,7 @@ public class QueueServer {
 				cthread2.start();
 			} else
 				comm2.run();
-		}
+		//}
 		
 	}
 
@@ -170,6 +172,7 @@ public class QueueServer {
 		RoutingConf conf;
 		Queue<CommandMessage> leaderMessageQue; 
 		Queue<CommandMessage> nonLeaderMessageQue; 
+		
 		public StartCommandCommunication(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, Queue<CommandMessage> nonLeaderMessageQue) {
 			this.conf = conf;
 			this.leaderMessageQue = leaderMessageQue;

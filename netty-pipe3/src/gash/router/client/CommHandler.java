@@ -1,5 +1,6 @@
 /*
  * copyright 2016, gash
+
  * 
  * Gash licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -16,6 +17,7 @@
 package gash.router.client;
 
 import java.util.concurrent.ConcurrentHashMap;
+
 import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;

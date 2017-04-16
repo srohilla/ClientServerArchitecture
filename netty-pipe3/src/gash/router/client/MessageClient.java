@@ -15,7 +15,8 @@
  */
 package gash.router.client;
 
-import pipe.common.Common.Header;
+import pipe.common.Common.Header
+;
 import routing.Pipe.CommandMessage;
 
 /**

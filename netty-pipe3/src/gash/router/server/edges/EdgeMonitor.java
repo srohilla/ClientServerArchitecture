@@ -27,6 +27,7 @@ import gash.router.server.ServerState;
 import gash.router.server.ServerUtils;
 import gash.router.server.WorkHandler;
 import gash.router.server.WorkInit;
+import gash.router.server.raft.NodeState;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -35,8 +36,18 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import pipe.work.Ping.PingMessage;
 import pipe.work.Work.WorkMessage;
+import routing.Pipe.CommandMessage;
+import routing.Pipe.WorkStealingRequest;
 
 public class EdgeMonitor implements EdgeListener, Runnable {
+
+	public boolean isWorkAvailable() {
+		return isWorkAvailable;
+	}
+
+	public void setWorkAvailable(boolean isWorkAvailable) {
+		this.isWorkAvailable = isWorkAvailable;
+	}
 
 	public EdgeList getOutboundEdges() {
 		return outboundEdges;
@@ -51,8 +62,11 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 	private long dt = 2000;
 	private ServerState state;
 	private boolean forever = true;
+	private int port; 
+	private boolean isWorkAvailable = false;
 
 	public EdgeMonitor(ServerState state) {
+		port = state.getConf().getCommandPort();
 		if (state == null)
 			throw new RuntimeException("state is null");
 
@@ -66,7 +80,6 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 				EdgeInfo ei = outboundEdges.addNode(e.getId(), e.getHost(), e.getPort());
 			}
 		}
-
 		// cannot go below 2 sec
 		if (state.getConf().getHeartbeatDt() > this.dt)
 			this.dt = state.getConf().getHeartbeatDt();
@@ -105,13 +118,19 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 			try {
 				for (EdgeInfo ei : this.outboundEdges.map.values()) {
 					if (ei.isActive() && ei.getChannel() != null) {
-					//	WorkMessage workMessage = createPingMessage(ei);
-					//	Logger.DEBUG("Sent Ping Message to " + ei.getRef());
-						//ChannelFuture cf = ei.getChannel().writeAndFlush(workMessage);
-					//	if (cf.isDone() && !cf.isSuccess()) {
-						//	Logger.DEBUG("failed to send Ping Message  to server");
-					//	}
-					} else {
+						if(ei.getRef() == 0 && state.getTasks().numEnqueued() == 0){ //Value 0 is for proxy server
+							CommandMessage.Builder cmd = CommandMessage.newBuilder();
+							WorkStealingRequest.Builder wsr = WorkStealingRequest.newBuilder();
+							wsr.setHost(InetAddress.getLocalHost().getHostAddress());
+							wsr.setPort(port); //Command Port
+							wsr.setNodeState(String.valueOf(NodeState.getInstance().getNodestate()));
+							cmd.setWsr(wsr);
+							ChannelFuture cf = ei.getChannel().writeAndFlush(cmd);
+							if (cf.isDone() && !cf.isSuccess()) {
+								Logger.DEBUG("failed to send Message to Proxy");
+							}
+						}
+					}else {
 						Logger.DEBUG("Chanel not active for : " + ei.getRef());
 						onAdd(ei);
 

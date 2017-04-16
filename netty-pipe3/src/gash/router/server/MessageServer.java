@@ -16,6 +16,7 @@
 package gash.router.server;
 
 import java.io.BufferedInputStream;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import pipe.common.Common.Request;
 import pipe.common.Common.WriteBody;
-import pipe.common.Common.Request.RequestType;
+//import pipe.common.Common.Request.RequestType;
 import gash.router.container.RoutingConf;
 import gash.router.server.edges.EdgeInfo;
 import gash.router.server.edges.EdgeList;
@@ -59,7 +60,7 @@ public class MessageServer {
 
 	protected RoutingConf conf;
 	protected boolean background = false;
-	protected CommandMessage work;
+	//protected ServerState state;
 
 	/**
 	 * initialize the server with a configuration of it's resources
@@ -72,6 +73,7 @@ public class MessageServer {
 
 	public MessageServer(RoutingConf conf) {
 		this.conf = conf;
+		//state = new ServerState();
 	}
 
 	public void release() {
@@ -197,6 +199,7 @@ public class MessageServer {
 		
 		public StartCommandCommunication(RoutingConf conf) {
 			this.conf = conf;
+			//this.state = state;
 		}
 
 		public void run() {
@@ -266,6 +269,7 @@ public class MessageServer {
 		//	state.setTasks(tasks);
 
 			EdgeMonitor emon = new EdgeMonitor(state);
+			//state.setEmon(emon);
 			Thread t = new Thread(emon);
 			t.start();
 		}
