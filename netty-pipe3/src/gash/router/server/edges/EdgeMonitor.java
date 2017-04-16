@@ -21,6 +21,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import gash.router.client.CommInit;
 import gash.router.container.RoutingConf.RoutingEntry;
 import gash.router.logger.Logger;
 import gash.router.server.ServerState;
@@ -34,6 +35,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import pipe.common.Common.Header;
+import pipe.common.Common.Node;
 import pipe.work.Ping.PingMessage;
 import pipe.work.Work.WorkMessage;
 import routing.Pipe.CommandMessage;
@@ -67,6 +70,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 
 	public EdgeMonitor(ServerState state) {
 		port = state.getConf().getCommandPort();
+		Logger.DEBUG("Port : "+ port);
 		if (state == null)
 			throw new RuntimeException("state is null");
 
@@ -118,20 +122,27 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 			try {
 				for (EdgeInfo ei : this.outboundEdges.map.values()) {
 					if (ei.isActive() && ei.getChannel() != null) {
-						if(state != null && state.getTasks() != null){
-							if(ei.getRef() == 0 && state.getTasks().numEnqueued() == 0){ //Value 0 is for proxy server
+						//if(state != null && state.getTasks() != null){
+							if(ei.getRef() == 0 && state.getTasks() == null){ //Value 0 is for proxy server
+								Logger.DEBUG("Sending WSR to Proxy ");
 								CommandMessage.Builder cmd = CommandMessage.newBuilder();
 								WorkStealingRequest.Builder wsr = WorkStealingRequest.newBuilder();
 								wsr.setHost(InetAddress.getLocalHost().getHostAddress());
 								wsr.setPort(port); //Command Port
 								wsr.setNodeState(String.valueOf(NodeState.getInstance().getNodestate()));
 								cmd.setWsr(wsr);
-								ChannelFuture cf = ei.getChannel().writeAndFlush(cmd);
-								if (cf.isDone() && !cf.isSuccess()) {
-									Logger.DEBUG("failed to send Message to Proxy");
+								Header.Builder header= Header.newBuilder();
+								header.setNodeId(1);
+								header.setTime(0);
+								cmd.setHeader(header);
+								CommandMessage commandMessage = cmd.build();
+								ChannelFuture cf = ei.getChannel().writeAndFlush(commandMessage);
+								Thread.sleep(4000);
+								if (cf.isDone() && cf.isSuccess()) {
+									Logger.DEBUG("Message sent to proxy !");
 								}
 							}
-						}
+						
 						else if(state == null){
 							Logger.DEBUG("State is null");
 						}
@@ -141,7 +152,15 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 						
 					}else {
 						Logger.DEBUG("Chanel not active for : " + ei.getRef());
-						onAdd(ei);
+						if(ei.getRef() == 0){
+							/*
+							 * Make connection with QueueServer
+							 */
+							connectToQueueServer(ei);
+						}
+						else{
+							onAdd(ei);
+						}
 
 						// Logger.DEBUG("Connection made 1234" +
 						// ei.getChannel().config().hashCode());
@@ -163,7 +182,44 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 			}
 		}
 	}
+	
+	public synchronized void connectToQueueServer(EdgeInfo ei){
+		
+		EventLoopGroup group = new NioEventLoopGroup();
+		ChannelFuture channel; 
+		try {
+			CommInit si = new CommInit(false);
+			Bootstrap b = new Bootstrap();
+			b.group(group).channel(NioSocketChannel.class).handler(si);
+			b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
+			b.option(ChannelOption.TCP_NODELAY, true);
+			b.option(ChannelOption.SO_KEEPALIVE, true);
 
+
+			// Make the connection attempt.
+			Logger.DEBUG("Host : " + ei.getHost() + "Port "+ ei.getPort());
+			channel = b.connect(ei.getHost(), ei.getPort()).syncUninterruptibly();
+
+			
+			// want to monitor the connection to the server s.t. if we loose the
+			// connection, we can try to re-establish it.
+			// ClientClosedListener ccl = new ClientClosedListener(this);
+			// channel.channel().closeFuture().addListener(ccl);
+
+			System.out.println(channel.channel().localAddress() + " -> open: " + channel.channel().isOpen()
+					+ ", write: " + channel.channel().isWritable() + ", reg: " + channel.channel().isRegistered());
+			
+			ei.setChannel(channel.channel());
+			ei.setActive(true);
+			//channel.channel().closeFuture();
+			
+		} catch (Throwable ex) {
+			System.out.println("failed to initialize the client connection " + ex.toString());
+			ex.printStackTrace();
+		}
+		
+	}
+	
 	@Override
 	public synchronized void onAdd(EdgeInfo ei) {
 		try {

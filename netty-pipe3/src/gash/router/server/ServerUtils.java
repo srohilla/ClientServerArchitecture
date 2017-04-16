@@ -61,7 +61,7 @@ public class ServerUtils {
 	
 	public static long getFileReceiveTimeout(){
 		
-		return 1000L;
+		return 100000L;
 	}
 	
 	

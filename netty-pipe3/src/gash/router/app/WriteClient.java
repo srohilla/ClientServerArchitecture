@@ -10,6 +10,7 @@ import java.io.BufferedInputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +18,7 @@ import java.nio.file.Paths;
 import com.google.protobuf.ByteString;
 
 import gash.router.client.CommInit;
+import gash.router.logger.Logger;
 import gash.router.server.ServerUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -26,6 +28,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import pipe.common.Common.Chunk;
 import pipe.common.Common.Header;
+import pipe.common.Common.Node;
 import pipe.common.Common.Request;
 import pipe.common.Common.TaskType;
 //import pipe.common.Common.Request.RequestType;
@@ -86,8 +89,10 @@ public class WriteClient {
 	
 	public static void writeFile(File f){
 		
-			int partCounter = 1;
-			int chunkSize = 1024;
+			int partCounter = 0;
+			int chunkSize = 9;
+			Logger.DEBUG("File Size : " + f.length());
+			//Logger.DEBUG(" : " + f.length());
 			int chunks = (int) (f.length()/chunkSize);
 			//ArrayList<Byte> buffer = new ArrayList<>();
 			byte[] data = new byte[chunkSize];
@@ -110,15 +115,21 @@ public class WriteClient {
 				rwb.setNumOfChunks(chunks);
 				Header.Builder header= Header.newBuilder();
 				header.setNodeId(1);
+				header.setTime(0);
 				command.setHeader(header);
 				Chunk.Builder chunk = Chunk.newBuilder();
-				chunk.setChunkId(partCounter++);
+				chunk.setChunkId(partCounter);
 				chunk.setChunkSize(chunkSize);
 				chunk.setChunkData(byteStringData);
 				rwb.setChunk(chunk);
 				msg.setRwb(rwb);
+				Node.Builder node = Node.newBuilder();
+				node.setHost(InetAddress.getLocalHost().getHostAddress());
+				node.setPort(7777);
+				node.setNodeId(-1);
+				msg.setNode(node);
 				command.setRequest(msg);
-				
+				partCounter++;
 				CommandMessage commandMessage = command.build();
 				
 				channel.channel().writeAndFlush(commandMessage);
@@ -143,12 +154,12 @@ public class WriteClient {
 	public static void main(String[] args) {
 		
 		String host = "127.0.0.1";
-		int port = 4168;
+		int port = 4068;
 		
 		System.out.println("Sent the message");
 		
 		WriteClient.init(host, port);
-		File file = new File("/Users/seemarohilla/Desktop/test.txt");
+		File file = new File("/Users/gaganjain/Desktop/writeFile.txt");
 		WriteClient.writeFile(file);
 		//AdapterClientAPI.post("vinit_adapter".getBytes());;
 	

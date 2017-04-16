@@ -54,6 +54,8 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 	private static HashMap<String, List<CommandMessage>> map = new HashMap<>();
 	private static Node client;
 	
+	static ChannelFuture cf;
+	static EventLoopGroup group = new NioEventLoopGroup();
 	
 	public QueueCommandHandler(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, 
 			Queue<CommandMessage> nonLeaderMessageQue) {
@@ -71,7 +73,38 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 	 * 
 	 * @param msg
 	 */
-	public void handleMessage(CommandMessage msg, ChannelFuture channel) {
+	
+	public static void init(String host_received, int port_received)
+	{
+		
+		try {
+			CommInit si = new CommInit(false);
+			Bootstrap b = new Bootstrap();
+			b.group(group).channel(NioSocketChannel.class).handler(si);
+			b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
+			b.option(ChannelOption.TCP_NODELAY, true);
+			b.option(ChannelOption.SO_KEEPALIVE, true);
+
+
+			// Make the connection attempt.
+			cf = b.connect(host_received, port_received).syncUninterruptibly();
+
+			
+			// want to monitor the connection to the server s.t. if we loose the
+			// connection, we can try to re-establish it.
+			// ClientClosedListener ccl = new ClientClosedListener(this);
+			// channel.channel().closeFuture().addListener(ccl);
+
+			System.out.println(cf.channel().localAddress() + " -> open: " + cf.channel().isOpen()
+					+ ", write: " + cf.channel().isWritable() + ", reg: " + cf.channel().isRegistered());
+
+		} catch (Throwable ex) {
+			System.out.println("failed to initialize the client connection " + ex.toString());
+			ex.printStackTrace();
+		}
+
+	}
+	public void handleMessage(CommandMessage msg, Channel channel) {
 		
 		/* For Write Requests :
 		 * 
@@ -84,6 +117,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 		 * else create connection back to client and send acknowledgement for missing chunks
 		 * and again set a timer !
 		 */
+		
 		if(msg.hasRequest()){
 			Request req = msg.getRequest();
 			client = req.getNode();
@@ -94,9 +128,12 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 					 */
 					if(req.hasRwb()){
 						WriteBody wb = req.getRwb();
+						logger.info("number of chunks: " + wb.getNumOfChunks());
 						String fileName = wb.getFilename();
 						if(!map.containsKey(fileName)){
-							map.put(fileName, new ArrayList<CommandMessage>(wb.getNumOfChunks()));
+							ArrayList<CommandMessage> list = new ArrayList<>(wb.getNumOfChunks());
+							list.add(wb.getChunk().getChunkId(), msg);
+							map.put(fileName, list);
 							NodeTimer timer = new NodeTimer();
 							ChunkInspector chunkInspector = new ChunkInspector(fileName, wb.getNumOfChunks());
 							Thread t = new Thread(chunkInspector);
@@ -136,7 +173,8 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 					/*
 					 * Create Connection to host and port and write task to the channel
 					 */
-					EventLoopGroup group = new NioEventLoopGroup();
+					init(host, port);
+					/*EventLoopGroup group = new NioEventLoopGroup();
 					try {
 						CommInit si = new CommInit(false);
 						Bootstrap b = new Bootstrap();
@@ -147,7 +185,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 
 
 						// Make the connection attempt.
-						 channel = b.connect(host, port).syncUninterruptibly();
+						chanl = b.connect(host, port).syncUninterruptibly();
 
 						
 						// want to monitor the connection to the server s.t. if we loose the
@@ -155,16 +193,16 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 						// ClientClosedListener ccl = new ClientClosedListener(this);
 						// channel.channel().closeFuture().addListener(ccl);
 
-						System.out.println(channel.channel().localAddress() + " -> open: " + channel.channel().isOpen()
-								+ ", write: " + channel.channel().isWritable() + ", reg: " + channel.channel().isRegistered());
+						System.out.println(chanl.channel().localAddress() + " -> open: " + chanl.channel().isOpen()
+								+ ", write: " + chanl.channel().isWritable() + ", reg: " + chanl.channel().isRegistered());
 
 					} catch (Throwable ex) {
 						System.out.println("failed to initialize the client connection " + ex.toString());
 						ex.printStackTrace();
-					}
+					}*/
 					
-					channel.channel().writeAndFlush(task);
-					if (channel.isDone() && channel.isSuccess()) {
+					cf.channel().writeAndFlush(task);
+					if (cf.isDone() && cf.isSuccess()) {
 						System.out.println("Msg sent succesfully:");
 					}
 				}
@@ -175,7 +213,8 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 					/*
 					 * Create Connection to host and port and write task to the channel
 					 */
-					EventLoopGroup group = new NioEventLoopGroup();
+					init(host, port);
+					/*EventLoopGroup group = new NioEventLoopGroup();
 					try {
 						CommInit si = new CommInit(false);
 						Bootstrap b = new Bootstrap();
@@ -186,7 +225,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 
 
 						// Make the connection attempt.
-						 channel = b.connect(host, port).syncUninterruptibly();
+						chanl = b.connect(host, port).syncUninterruptibly();
 
 						
 						// want to monitor the connection to the server s.t. if we loose the
@@ -194,16 +233,16 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 						// ClientClosedListener ccl = new ClientClosedListener(this);
 						// channel.channel().closeFuture().addListener(ccl);
 
-						System.out.println(channel.channel().localAddress() + " -> open: " + channel.channel().isOpen()
-								+ ", write: " + channel.channel().isWritable() + ", reg: " + channel.channel().isRegistered());
+						System.out.println(chanl.channel().localAddress() + " -> open: " + chanl.channel().isOpen()
+								+ ", write: " + chanl.channel().isWritable() + ", reg: " + chanl.channel().isRegistered());
 
 					} catch (Throwable ex) {
 						System.out.println("failed to initialize the client connection " + ex.toString());
 						ex.printStackTrace();
-					}
+					}*/
 					
-					channel.channel().writeAndFlush(task);
-					if (channel.isDone() && channel.isSuccess()) {
+					cf.channel().writeAndFlush(task);
+					if (cf.isDone() && cf.isSuccess()) {
 						System.out.println("Msg sent succesfully:");
 					}
 				}
@@ -246,7 +285,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				logger.info(msg.getMessage());
 			}
 			else if (msg.hasRequest() == true) {
-				System.out.println("OH i got a file to write");
+				System.out.println("Queue Command Handler : OH i got a file to write");
 				NodeState.getInstance().getState().handleWriteFile(msg.getRequest().getRwb());
 				
 			}
@@ -281,7 +320,9 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
-		handleMessage(msg, (ChannelFuture) ctx.channel());
+		
+		logger.info("Request arrived from : " + msg.getRequest().getNode().getNodeId());
+		handleMessage(msg, ctx.channel());
 		/*System.out.println(" Pushing haschode to messageQue");
 
 		// if it is a write message
@@ -319,6 +360,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				/*
 				 * Push the message to the leader Queue
 				 */
+				logger.info("Received all Chunks ");
 				QueueCommandHandler.enqueue(fileName);
 			}
 			else{
@@ -386,8 +428,8 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 			System.out.println("failed to initialize the client connection " + ex.toString());
 			ex.printStackTrace();
 		}
-		
-		((Channel) channel).writeAndFlush(command);
+		CommandMessage cmd = command.build();
+		channel.channel().writeAndFlush(cmd);
 		if (channel.isDone() && channel.isSuccess()) {
 			System.out.println("Msg sent succesfully:");
 		}
@@ -403,6 +445,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 			leaderMessageQue.offer(msg);
 			
 		}
+		logger.info("Added file chunks to leaderQueue");
 	}
 	
 	public static HashMap<String, List<CommandMessage>> getMapInstance(){
