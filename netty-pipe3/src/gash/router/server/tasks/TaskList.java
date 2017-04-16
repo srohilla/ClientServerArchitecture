@@ -38,7 +38,10 @@ public class TaskList {
 	private int processed;
 	private int balanced;
 	private Rebalancer rebalance;
-
+	
+	public TaskList(){
+		
+	}
 	public TaskList(Rebalancer rb) {
 		rebalance = rb;
 	}
