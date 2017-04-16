@@ -79,7 +79,7 @@ public class MessageServer {
 	public void release() {
 	}
 
-	public void startWorkWatcher(){
+	/*public void startWorkWatcher(){
 		CommandMessage.Builder command = CommandMessage.newBuilder();
 		WorkStealingRequest.Builder stealRequest = WorkStealingRequest.newBuilder();
 		stealRequest.setHost("someIP");
@@ -122,12 +122,12 @@ public class MessageServer {
 		
 		queWatcher.start();
 		logger.info("...(@>@)... the wathching thread on messageQue started ");
-	}
+	}*/
 	
 	public void startServer() {
 		StartWorkCommunication comm = new StartWorkCommunication(conf);
 		logger.info("Work starting");
-		startWorkWatcher();
+		//startWorkWatcher();
 		// We always start the worker in the background
 		Thread cthread = new Thread(comm);
 		cthread.start();
