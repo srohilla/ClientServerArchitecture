@@ -99,6 +99,7 @@ public class QueueServer {
 	}
 	
 	public void startServer() {
+		logger.info(" (@>@) Queue Server started");
 		StartWorkCommunication comm = new StartWorkCommunication(conf);
 		logger.info("Work starting");
 		//startMessageQueWatcher();

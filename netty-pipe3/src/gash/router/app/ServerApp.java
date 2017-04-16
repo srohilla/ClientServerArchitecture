@@ -100,9 +100,6 @@ public static void main(String[] args) {
 	//int port = 4567;
 	System.out.println("test");
 	ServerApp app= new ServerApp(0);
-
-
-
 	
 }
 
