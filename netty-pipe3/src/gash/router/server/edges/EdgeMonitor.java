@@ -73,7 +73,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 		this.outboundEdges = new EdgeList();
 		this.inboundEdges = new EdgeList();
 		this.state = state;
-		this.state.setEmon(this);
+		//this.state.setEmon(this);
 
 		if (state.getConf().getRouting() != null) {
 			for (RoutingEntry e : state.getConf().getRouting()) {
@@ -118,18 +118,27 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 			try {
 				for (EdgeInfo ei : this.outboundEdges.map.values()) {
 					if (ei.isActive() && ei.getChannel() != null) {
-						if(ei.getRef() == 0 && state.getTasks().numEnqueued() == 0){ //Value 0 is for proxy server
-							CommandMessage.Builder cmd = CommandMessage.newBuilder();
-							WorkStealingRequest.Builder wsr = WorkStealingRequest.newBuilder();
-							wsr.setHost(InetAddress.getLocalHost().getHostAddress());
-							wsr.setPort(port); //Command Port
-							wsr.setNodeState(String.valueOf(NodeState.getInstance().getNodestate()));
-							cmd.setWsr(wsr);
-							ChannelFuture cf = ei.getChannel().writeAndFlush(cmd);
-							if (cf.isDone() && !cf.isSuccess()) {
-								Logger.DEBUG("failed to send Message to Proxy");
+						if(state != null && state.getTasks() != null){
+							if(ei.getRef() == 0 && state.getTasks().numEnqueued() == 0){ //Value 0 is for proxy server
+								CommandMessage.Builder cmd = CommandMessage.newBuilder();
+								WorkStealingRequest.Builder wsr = WorkStealingRequest.newBuilder();
+								wsr.setHost(InetAddress.getLocalHost().getHostAddress());
+								wsr.setPort(port); //Command Port
+								wsr.setNodeState(String.valueOf(NodeState.getInstance().getNodestate()));
+								cmd.setWsr(wsr);
+								ChannelFuture cf = ei.getChannel().writeAndFlush(cmd);
+								if (cf.isDone() && !cf.isSuccess()) {
+									Logger.DEBUG("failed to send Message to Proxy");
+								}
 							}
 						}
+						else if(state == null){
+							Logger.DEBUG("State is null");
+						}
+						else{
+							Logger.DEBUG("Tasks is null");
+						}
+						
 					}else {
 						Logger.DEBUG("Chanel not active for : " + ei.getRef());
 						onAdd(ei);
