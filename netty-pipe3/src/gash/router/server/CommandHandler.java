@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import gash.router.app.ServerApp;
 import gash.router.container.RoutingConf;
 import gash.router.server.raft.NodeState;
+import gash.router.server.tasks.TaskList;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -112,7 +113,18 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
-		NodeState.getInstance().getServerState().getTasks().addTask(msg);
+		ServerState state = NodeState.getInstance().getServerState();
+		if(state.getTasks() != null){
+			state.getTasks().addTask(msg);
+		}
+		else{
+			TaskList task = new TaskList();
+			task.addTask(msg);
+			state.setTasks(task);
+		}
+		
+		//NodeState.getInstance().getServerState().setTasks(task);
+		//NodeState.getInstance().getServerState().getTasks().addTask(msg);
 		logger.info("Message received by worker(leader/follower) to process");
 		handleMessage(msg, ctx.channel());	
 	}
