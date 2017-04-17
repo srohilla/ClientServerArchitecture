@@ -120,7 +120,7 @@ public class WriteClient {
 				
 				ByteString byteStringData = ByteString.copyFrom(data);
 				Logger.DEBUG(byteStringData.toStringUtf8());
-				/*CommandMessage.Builder command = CommandMessage.newBuilder();
+				CommandMessage.Builder command = CommandMessage.newBuilder();
 				Request.Builder msg = Request.newBuilder();
 				msg.setRequestType(TaskType.WRITEFILE);
 				WriteBody.Builder rwb  = WriteBody.newBuilder();
@@ -150,7 +150,7 @@ public class WriteClient {
 				
 				if (channel.isDone() && channel.isSuccess()) {
 					System.out.println("Msg sent succesfully:");
-				}*/
+				}
 			}
 				
 		} catch (Exception e) {
@@ -171,7 +171,7 @@ public class WriteClient {
 		
 		System.out.println("Sent the message");
 		
-		//WriteClient.init(host, port);
+		WriteClient.init(host, port);
 		File file = new File("/Users/gaganjain/Desktop/DemoApp.java");
 		WriteClient.writeFile(file);
 		//AdapterClientAPI.post("vinit_adapter".getBytes());;
