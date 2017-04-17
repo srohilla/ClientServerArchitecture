@@ -40,8 +40,9 @@ public class TaskList {
 	private Rebalancer rebalance;
 	
 	public TaskList(){
-		
+		inbound = new LinkedBlockingDeque<>();
 	}
+	
 	public TaskList(Rebalancer rb) {
 		rebalance = rb;
 	}

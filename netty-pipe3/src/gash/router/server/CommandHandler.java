@@ -101,7 +101,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 			channel.write(rb.build());
 		}
 		
-		NodeState.getInstance().getServerState().getTasks().dequeue();
+		state.getTasks().dequeue();
 		System.out.flush();
 	}
 

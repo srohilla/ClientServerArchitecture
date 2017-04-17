@@ -48,9 +48,9 @@ public class WriteClient {
 	static int port;
 	static ChannelFuture channel;
 	
-	 static EventLoopGroup group;
+	static EventLoopGroup group;
+	static final int chunkSize = 1024; // MAX BLOB STORAGE = Math,pow(2,15) -1 = 65535 Bytes 
 	
-
 	
 	public static void init(String host_received, int port_received)
 	{
@@ -91,26 +91,39 @@ public class WriteClient {
 	public static void writeFile(File f){
 		
 			int partCounter = 0;
-			int chunkSize = 9;
+			byte[] data;
 			Logger.DEBUG("File Size : " + f.length());
-			//Logger.DEBUG(" : " + f.length());
-			int chunks = (int) (f.length()/chunkSize);
-			//ArrayList<Byte> buffer = new ArrayList<>();
-			byte[] data = new byte[chunkSize];
+			long fileSize = f.length();
+			int chunks = (int) Math.ceil(f.length()/(double)chunkSize);
+			
+			if(chunks == 0){
+				data = new byte[(int) f.length()];
+			}
+			else{
+				data = new byte[chunkSize];
+			}
+			
 			try (BufferedInputStream bis = new BufferedInputStream(
 			new FileInputStream(f))) {//try-with-resources to ensure closing stream
-			String name = f.getName();
-			
-			int tmp = 0;
-			while ((tmp = bis.read(data)) > 0) {
-			
-				ByteString byteStringData= ByteString.copyFrom(data);
 				
-				CommandMessage.Builder command = CommandMessage.newBuilder();
+			String name = f.getName();
+			//int tmp = chunks;
+			while(fileSize > 0 && bis.read(data) > 0){
+				
+				Logger.DEBUG("File LEft : " + fileSize);
+				if(fileSize < chunkSize){
+					data = new byte[(int) fileSize];
+					fileSize = 0;
+				}
+
+				fileSize -= chunkSize;
+				
+				ByteString byteStringData = ByteString.copyFrom(data);
+				Logger.DEBUG(byteStringData.toStringUtf8());
+				/*CommandMessage.Builder command = CommandMessage.newBuilder();
 				Request.Builder msg = Request.newBuilder();
 				msg.setRequestType(TaskType.WRITEFILE);
 				WriteBody.Builder rwb  = WriteBody.newBuilder();
-				//rwb.setFileId("1");
 				rwb.setFileExt(f.getName().substring(f.getName().lastIndexOf(".") + 1));
 				rwb.setFilename(f.getName());
 				rwb.setNumOfChunks(chunks);
@@ -129,7 +142,6 @@ public class WriteClient {
 				node.setPort(7777);
 				node.setNodeId(-1);
 				msg.setClient(node);
-				//msg.setNode(node);
 				command.setRequest(msg);
 				partCounter++;
 				CommandMessage commandMessage = command.build();
@@ -138,12 +150,9 @@ public class WriteClient {
 				
 				if (channel.isDone() && channel.isSuccess()) {
 					System.out.println("Msg sent succesfully:");
-				}
-
+				}*/
 			}
-		
-		
-		
+				
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -154,14 +163,16 @@ public class WriteClient {
 	
 
 	public static void main(String[] args) {
-		
+		/*long f = 2297;
+		int chunkSize = 1024;
+		System.out.println((int) Math.ceil(f/(double)chunkSize));*/
 		String host = "127.0.0.1";
 		int port = 4068;
 		
 		System.out.println("Sent the message");
 		
-		WriteClient.init(host, port);
-		File file = new File("/Users/gaganjain/Desktop/writeFile.txt");
+		//WriteClient.init(host, port);
+		File file = new File("/Users/gaganjain/Desktop/DemoApp.java");
 		WriteClient.writeFile(file);
 		//AdapterClientAPI.post("vinit_adapter".getBytes());;
 	

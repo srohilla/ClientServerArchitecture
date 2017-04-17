@@ -123,7 +123,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 				for (EdgeInfo ei : this.outboundEdges.map.values()) {
 					if (ei.isActive() && ei.getChannel() != null) {
 						//if(state != null && state.getTasks() != null){
-							if(ei.getRef() == 0 && state.getTasks() == null){ //Value 0 is for proxy server
+							if(ei.getRef() == 0 && (state.getTasks() == null || state.getTasks().numEnqueued() == 0)){ //Value 0 is for proxy server
 								Logger.DEBUG("Sending WSR to Proxy ");
 								CommandMessage.Builder cmd = CommandMessage.newBuilder();
 								WorkStealingRequest.Builder wsr = WorkStealingRequest.newBuilder();

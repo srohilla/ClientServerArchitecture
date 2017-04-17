@@ -527,6 +527,16 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				 */
 				logger.info("Received all Chunks ");
 				QueueCommandHandler.enqueue(fileName);
+				
+				/*
+				 * Send writeResponse back to client
+				 */
+				/*Response.Builder response = Response.newBuilder();
+				response.setFilename(fileName);
+				response.setResponseType(TaskType.WRITEFILE);
+				response.setStatus(Status.Success);
+				Response resp = response.build();
+				QueueCommandHandler.sendAcknowledgement(resp);*/
 			}
 			else{
 				/*
