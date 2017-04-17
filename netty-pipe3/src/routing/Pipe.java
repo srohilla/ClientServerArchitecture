@@ -76,26 +76,27 @@ public final class Pipe {
     pipe.common.Common.RequestOrBuilder getRequestOrBuilder();
 
     /**
-     * <pre>
-     *Failure err = 5;
-     * </pre>
-     *
+     * <code>optional .Failure err = 5;</code>
+     */
+    boolean hasErr();
+    /**
+     * <code>optional .Failure err = 5;</code>
+     */
+    pipe.common.Common.Failure getErr();
+    /**
+     * <code>optional .Failure err = 5;</code>
+     */
+    pipe.common.Common.FailureOrBuilder getErrOrBuilder();
+
+    /**
      * <code>optional .WorkStealingRequest wsr = 7;</code>
      */
     boolean hasWsr();
     /**
-     * <pre>
-     *Failure err = 5;
-     * </pre>
-     *
      * <code>optional .WorkStealingRequest wsr = 7;</code>
      */
     routing.Pipe.WorkStealingRequest getWsr();
     /**
-     * <pre>
-     *Failure err = 5;
-     * </pre>
-     *
      * <code>optional .WorkStealingRequest wsr = 7;</code>
      */
     routing.Pipe.WorkStealingRequestOrBuilder getWsrOrBuilder();
@@ -194,6 +195,20 @@ public final class Pipe {
               payload_ = bs;
               break;
             }
+            case 42: {
+              pipe.common.Common.Failure.Builder subBuilder = null;
+              if (payloadCase_ == 5) {
+                subBuilder = ((pipe.common.Common.Failure) payload_).toBuilder();
+              }
+              payload_ =
+                  input.readMessage(pipe.common.Common.Failure.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((pipe.common.Common.Failure) payload_);
+                payload_ = subBuilder.buildPartial();
+              }
+              payloadCase_ = 5;
+              break;
+            }
             case 50: {
               pipe.common.Common.Request.Builder subBuilder = null;
               if (payloadCase_ == 6) {
@@ -282,6 +297,7 @@ public final class Pipe {
       PING(3),
       MESSAGE(4),
       REQUEST(6),
+      ERR(5),
       WSR(7),
       ANR(8),
       RESPONSE(9),
@@ -303,6 +319,7 @@ public final class Pipe {
           case 3: return PING;
           case 4: return MESSAGE;
           case 6: return REQUEST;
+          case 5: return ERR;
           case 7: return WSR;
           case 8: return ANR;
           case 9: return RESPONSE;
@@ -442,22 +459,40 @@ public final class Pipe {
       return pipe.common.Common.Request.getDefaultInstance();
     }
 
+    public static final int ERR_FIELD_NUMBER = 5;
+    /**
+     * <code>optional .Failure err = 5;</code>
+     */
+    public boolean hasErr() {
+      return payloadCase_ == 5;
+    }
+    /**
+     * <code>optional .Failure err = 5;</code>
+     */
+    public pipe.common.Common.Failure getErr() {
+      if (payloadCase_ == 5) {
+         return (pipe.common.Common.Failure) payload_;
+      }
+      return pipe.common.Common.Failure.getDefaultInstance();
+    }
+    /**
+     * <code>optional .Failure err = 5;</code>
+     */
+    public pipe.common.Common.FailureOrBuilder getErrOrBuilder() {
+      if (payloadCase_ == 5) {
+         return (pipe.common.Common.Failure) payload_;
+      }
+      return pipe.common.Common.Failure.getDefaultInstance();
+    }
+
     public static final int WSR_FIELD_NUMBER = 7;
     /**
-     * <pre>
-     *Failure err = 5;
-     * </pre>
-     *
      * <code>optional .WorkStealingRequest wsr = 7;</code>
      */
     public boolean hasWsr() {
       return payloadCase_ == 7;
     }
     /**
-     * <pre>
-     *Failure err = 5;
-     * </pre>
-     *
      * <code>optional .WorkStealingRequest wsr = 7;</code>
      */
     public routing.Pipe.WorkStealingRequest getWsr() {
@@ -467,10 +502,6 @@ public final class Pipe {
       return routing.Pipe.WorkStealingRequest.getDefaultInstance();
     }
     /**
-     * <pre>
-     *Failure err = 5;
-     * </pre>
-     *
      * <code>optional .WorkStealingRequest wsr = 7;</code>
      */
     public routing.Pipe.WorkStealingRequestOrBuilder getWsrOrBuilder() {
@@ -552,6 +583,12 @@ public final class Pipe {
           return false;
         }
       }
+      if (hasErr()) {
+        if (!getErr().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
       if (hasWsr()) {
         if (!getWsr().isInitialized()) {
           memoizedIsInitialized = 0;
@@ -586,6 +623,9 @@ public final class Pipe {
       if (payloadCase_ == 4) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 4, payload_);
       }
+      if (payloadCase_ == 5) {
+        output.writeMessage(5, (pipe.common.Common.Failure) payload_);
+      }
       if (payloadCase_ == 6) {
         output.writeMessage(6, (pipe.common.Common.Request) payload_);
       }
@@ -617,6 +657,10 @@ public final class Pipe {
       }
       if (payloadCase_ == 4) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, payload_);
+      }
+      if (payloadCase_ == 5) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, (pipe.common.Common.Failure) payload_);
       }
       if (payloadCase_ == 6) {
         size += com.google.protobuf.CodedOutputStream
@@ -672,6 +716,10 @@ public final class Pipe {
           result = result && getRequest()
               .equals(other.getRequest());
           break;
+        case 5:
+          result = result && getErr()
+              .equals(other.getErr());
+          break;
         case 7:
           result = result && getWsr()
               .equals(other.getWsr());
@@ -715,6 +763,10 @@ public final class Pipe {
         case 6:
           hash = (37 * hash) + REQUEST_FIELD_NUMBER;
           hash = (53 * hash) + getRequest().hashCode();
+          break;
+        case 5:
+          hash = (37 * hash) + ERR_FIELD_NUMBER;
+          hash = (53 * hash) + getErr().hashCode();
           break;
         case 7:
           hash = (37 * hash) + WSR_FIELD_NUMBER;
@@ -903,6 +955,13 @@ public final class Pipe {
             result.payload_ = requestBuilder_.build();
           }
         }
+        if (payloadCase_ == 5) {
+          if (errBuilder_ == null) {
+            result.payload_ = payload_;
+          } else {
+            result.payload_ = errBuilder_.build();
+          }
+        }
         if (payloadCase_ == 7) {
           if (wsrBuilder_ == null) {
             result.payload_ = payload_;
@@ -985,6 +1044,10 @@ public final class Pipe {
             mergeRequest(other.getRequest());
             break;
           }
+          case ERR: {
+            mergeErr(other.getErr());
+            break;
+          }
           case WSR: {
             mergeWsr(other.getWsr());
             break;
@@ -1015,6 +1078,11 @@ public final class Pipe {
         }
         if (hasRequest()) {
           if (!getRequest().isInitialized()) {
+            return false;
+          }
+        }
+        if (hasErr()) {
+          if (!getErr().isInitialized()) {
             return false;
           }
         }
@@ -1464,22 +1532,150 @@ public final class Pipe {
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
+          pipe.common.Common.Failure, pipe.common.Common.Failure.Builder, pipe.common.Common.FailureOrBuilder> errBuilder_;
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public boolean hasErr() {
+        return payloadCase_ == 5;
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public pipe.common.Common.Failure getErr() {
+        if (errBuilder_ == null) {
+          if (payloadCase_ == 5) {
+            return (pipe.common.Common.Failure) payload_;
+          }
+          return pipe.common.Common.Failure.getDefaultInstance();
+        } else {
+          if (payloadCase_ == 5) {
+            return errBuilder_.getMessage();
+          }
+          return pipe.common.Common.Failure.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public Builder setErr(pipe.common.Common.Failure value) {
+        if (errBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          payload_ = value;
+          onChanged();
+        } else {
+          errBuilder_.setMessage(value);
+        }
+        payloadCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public Builder setErr(
+          pipe.common.Common.Failure.Builder builderForValue) {
+        if (errBuilder_ == null) {
+          payload_ = builderForValue.build();
+          onChanged();
+        } else {
+          errBuilder_.setMessage(builderForValue.build());
+        }
+        payloadCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public Builder mergeErr(pipe.common.Common.Failure value) {
+        if (errBuilder_ == null) {
+          if (payloadCase_ == 5 &&
+              payload_ != pipe.common.Common.Failure.getDefaultInstance()) {
+            payload_ = pipe.common.Common.Failure.newBuilder((pipe.common.Common.Failure) payload_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            payload_ = value;
+          }
+          onChanged();
+        } else {
+          if (payloadCase_ == 5) {
+            errBuilder_.mergeFrom(value);
+          }
+          errBuilder_.setMessage(value);
+        }
+        payloadCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public Builder clearErr() {
+        if (errBuilder_ == null) {
+          if (payloadCase_ == 5) {
+            payloadCase_ = 0;
+            payload_ = null;
+            onChanged();
+          }
+        } else {
+          if (payloadCase_ == 5) {
+            payloadCase_ = 0;
+            payload_ = null;
+          }
+          errBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public pipe.common.Common.Failure.Builder getErrBuilder() {
+        return getErrFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      public pipe.common.Common.FailureOrBuilder getErrOrBuilder() {
+        if ((payloadCase_ == 5) && (errBuilder_ != null)) {
+          return errBuilder_.getMessageOrBuilder();
+        } else {
+          if (payloadCase_ == 5) {
+            return (pipe.common.Common.Failure) payload_;
+          }
+          return pipe.common.Common.Failure.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .Failure err = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          pipe.common.Common.Failure, pipe.common.Common.Failure.Builder, pipe.common.Common.FailureOrBuilder> 
+          getErrFieldBuilder() {
+        if (errBuilder_ == null) {
+          if (!(payloadCase_ == 5)) {
+            payload_ = pipe.common.Common.Failure.getDefaultInstance();
+          }
+          errBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              pipe.common.Common.Failure, pipe.common.Common.Failure.Builder, pipe.common.Common.FailureOrBuilder>(
+                  (pipe.common.Common.Failure) payload_,
+                  getParentForChildren(),
+                  isClean());
+          payload_ = null;
+        }
+        payloadCase_ = 5;
+        onChanged();;
+        return errBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
           routing.Pipe.WorkStealingRequest, routing.Pipe.WorkStealingRequest.Builder, routing.Pipe.WorkStealingRequestOrBuilder> wsrBuilder_;
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public boolean hasWsr() {
         return payloadCase_ == 7;
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public routing.Pipe.WorkStealingRequest getWsr() {
@@ -1496,10 +1692,6 @@ public final class Pipe {
         }
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public Builder setWsr(routing.Pipe.WorkStealingRequest value) {
@@ -1516,10 +1708,6 @@ public final class Pipe {
         return this;
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public Builder setWsr(
@@ -1534,10 +1722,6 @@ public final class Pipe {
         return this;
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public Builder mergeWsr(routing.Pipe.WorkStealingRequest value) {
@@ -1560,10 +1744,6 @@ public final class Pipe {
         return this;
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public Builder clearWsr() {
@@ -1583,20 +1763,12 @@ public final class Pipe {
         return this;
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public routing.Pipe.WorkStealingRequest.Builder getWsrBuilder() {
         return getWsrFieldBuilder().getBuilder();
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       public routing.Pipe.WorkStealingRequestOrBuilder getWsrOrBuilder() {
@@ -1610,10 +1782,6 @@ public final class Pipe {
         }
       }
       /**
-       * <pre>
-       *Failure err = 5;
-       * </pre>
-       *
        * <code>optional .WorkStealingRequest wsr = 7;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -3441,16 +3609,16 @@ public final class Pipe {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\npipe.proto\032\014common.proto\"\330\001\n\016CommandMe" +
+      "\n\npipe.proto\032\014common.proto\"\361\001\n\016CommandMe" +
       "ssage\022\027\n\006header\030\001 \002(\0132\007.Header\022\016\n\004ping\030\003" +
       " \001(\010H\000\022\021\n\007message\030\004 \001(\tH\000\022\033\n\007request\030\006 \001" +
-      "(\0132\010.RequestH\000\022#\n\003wsr\030\007 \001(\0132\024.WorkSteali" +
-      "ngRequestH\000\022\036\n\003anr\030\010 \001(\0132\017.AddNodeReques" +
-      "tH\000\022\035\n\010response\030\t \001(\0132\t.ResponseH\000B\t\n\007pa" +
-      "yload\"D\n\023WorkStealingRequest\022\014\n\004host\030\002 \002" +
-      "(\t\022\014\n\004port\030\003 \002(\005\022\021\n\tnodeState\030\004 \002(\t\",\n\016A" +
-      "ddNodeRequest\022\014\n\004host\030\002 \002(\t\022\014\n\004port\030\003 \002(" +
-      "\005B\013\n\007routingH\001"
+      "(\0132\010.RequestH\000\022\027\n\003err\030\005 \001(\0132\010.FailureH\000\022" +
+      "#\n\003wsr\030\007 \001(\0132\024.WorkStealingRequestH\000\022\036\n\003" +
+      "anr\030\010 \001(\0132\017.AddNodeRequestH\000\022\035\n\010response" +
+      "\030\t \001(\0132\t.ResponseH\000B\t\n\007payload\"D\n\023WorkSt" +
+      "ealingRequest\022\014\n\004host\030\002 \002(\t\022\014\n\004port\030\003 \002(" +
+      "\005\022\021\n\tnodeState\030\004 \002(\t\",\n\016AddNodeRequest\022\014" +
+      "\n\004host\030\002 \002(\t\022\014\n\004port\030\003 \002(\005B\013\n\007routingH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3470,7 +3638,7 @@ public final class Pipe {
     internal_static_CommandMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_CommandMessage_descriptor,
-        new java.lang.String[] { "Header", "Ping", "Message", "Request", "Wsr", "Anr", "Response", "Payload", });
+        new java.lang.String[] { "Header", "Ping", "Message", "Request", "Err", "Wsr", "Anr", "Response", "Payload", });
     internal_static_WorkStealingRequest_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_WorkStealingRequest_fieldAccessorTable = new

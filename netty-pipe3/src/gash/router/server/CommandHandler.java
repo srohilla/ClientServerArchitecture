@@ -26,6 +26,7 @@ import gash.router.server.tasks.TaskList;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import pipe.common.Common.Failure;
 //import pipe.common.Common.Failure;
 //import pipe.common.Common.Request.RequestType;
 import routing.Pipe.CommandMessage;
@@ -91,13 +92,13 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 
 		} catch (Exception e) {
 			// TODO add logging
-			/*Failure.Builder eb = Failure.newBuilder();
+			Failure.Builder eb = Failure.newBuilder();
 			eb.setId(conf.getNodeId());
 			eb.setRefId(msg.getHeader().getNodeId());
 			eb.setMessage(e.getMessage());
 			CommandMessage.Builder rb = CommandMessage.newBuilder(msg);
 			rb.setErr(eb);
-			channel.write(rb.build());*/
+			channel.write(rb.build());
 		}
 		
 		NodeState.getInstance().getServerState().getTasks().dequeue();

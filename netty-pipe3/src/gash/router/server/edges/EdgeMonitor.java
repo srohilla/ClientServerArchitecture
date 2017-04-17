@@ -77,7 +77,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 		this.outboundEdges = new EdgeList();
 		this.inboundEdges = new EdgeList();
 		this.state = state;
-		//this.state.setEmon(this);
+		this.state.setEmon(this);
 
 		if (state.getConf().getRouting() != null) {
 			for (RoutingEntry e : state.getConf().getRouting()) {
@@ -127,17 +127,19 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 								Logger.DEBUG("Sending WSR to Proxy ");
 								CommandMessage.Builder cmd = CommandMessage.newBuilder();
 								WorkStealingRequest.Builder wsr = WorkStealingRequest.newBuilder();
-								wsr.setHost(InetAddress.getLocalHost().getHostAddress());
+								wsr.setHost(state.getConf().getHost());
 								wsr.setPort(port); //Command Port
 								wsr.setNodeState(String.valueOf(NodeState.getInstance().getNodestate()));
+								Logger.DEBUG("WSR request before set : " + wsr);
 								cmd.setWsr(wsr);
+								Logger.DEBUG("WSR request after set " + cmd.getWsr());
 								Header.Builder header= Header.newBuilder();
-								header.setNodeId(1);
-								header.setTime(0);
+								header.setNodeId(state.getConf().getNodeId());
+								header.setTime(999);
 								cmd.setHeader(header);
 								CommandMessage commandMessage = cmd.build();
 								ChannelFuture cf = ei.getChannel().writeAndFlush(commandMessage);
-								Thread.sleep(4000);
+								//Thread.sleep(4000);
 								if (cf.isDone() && cf.isSuccess()) {
 									Logger.DEBUG("Message sent to proxy !");
 								}

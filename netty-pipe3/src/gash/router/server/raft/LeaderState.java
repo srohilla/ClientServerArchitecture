@@ -65,7 +65,7 @@ public class LeaderState extends State implements Runnable {
 			for (EdgeInfo ei : NodeState.getInstance().getServerState().getEmon().getOutboundEdges().getMap()
 					.values()) {
 
-				if (ei.isActive() && ei.getChannel() != null) {
+				if (ei.isActive() && ei.getChannel() != null && ei.getRef() != 0) {
 
 					Logger.DEBUG("Sent AppendEntriesPacket to " + ei.getRef() + "for the key " + workMessage.getAppendEntriesPacket().getAppendEntries().getImageMsg().getKey());
 
@@ -140,7 +140,7 @@ public class LeaderState extends State implements Runnable {
 	@Override
 	public void sendHeartBeat() {
 		for (EdgeInfo ei : NodeState.getInstance().getServerState().getEmon().getOutboundEdges().getMap().values()) {
-			if (ei.isActive() && ei.getChannel() != null) {
+			if (ei.isActive() && ei.getChannel() != null && ei.getRef() != 0) {
 				WorkMessage workMessage = ServerMessageUtils.prepareHeartBeat();
 				Logger.DEBUG("Sent HeartBeatPacket to " + ei.getRef());
 				ChannelFuture cf = ei.getChannel().writeAndFlush(workMessage);
@@ -188,7 +188,7 @@ public class LeaderState extends State implements Runnable {
 		for (EdgeInfo ei : NodeState.getInstance().getServerState().getEmon().getOutboundEdges().getMap()
 				.values()) {
 
-			if (ei.isActive() && ei.getChannel() != null) {
+			if (ei.isActive() && ei.getChannel() != null && ei.getRef()	!= 0) {
 
 				Logger.DEBUG("Sent AppendEntriesPacket to " + ei.getRef());
 

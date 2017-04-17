@@ -25,7 +25,7 @@ public class QueueCommandInit extends ChannelInitializer<SocketChannel> {
 	RoutingConf conf;
 	Queue<CommandMessage> leaderMessageQue; 
 	Queue<CommandMessage> nonLeaderMessageQue; 
-
+	
 	public QueueCommandInit(RoutingConf conf, boolean enableCompression) {
 		super();
 		compress = enableCompression;

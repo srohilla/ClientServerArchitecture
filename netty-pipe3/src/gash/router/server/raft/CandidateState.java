@@ -48,7 +48,7 @@ public class CandidateState extends State implements Runnable{
 			System.out.println(ei.isActive());
 			System.out.println(ei.getChannel());
 			
-			if (ei.isActive() && ei.getChannel() != null) {
+			if (ei.isActive() && ei.getChannel() != null && ei.getRef() != 0) {
 				WorkMessage workMessage = ServerMessageUtils.prepareRequestVoteRPC();
 				Logger.DEBUG("Sent VoteRequestRPC to " + ei.getRef());
 				ChannelFuture cf = ei.getChannel().writeAndFlush(workMessage);

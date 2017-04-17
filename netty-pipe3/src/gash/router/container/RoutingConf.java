@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RoutingConf {
 	private int nodeId;
+	private String host;
 	private int commandPort;
 	private int workPort;
 	private boolean internalNode = true;
@@ -61,6 +62,14 @@ public class RoutingConf {
 
 	public int getNodeId() {
 		return nodeId;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
 	}
 
 	public void setNodeId(int nodeId) {

@@ -8,6 +8,7 @@ import java.io.BufferedInputStream;
 
 
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.InetAddress;
@@ -127,7 +128,8 @@ public class WriteClient {
 				node.setHost(InetAddress.getLocalHost().getHostAddress());
 				node.setPort(7777);
 				node.setNodeId(-1);
-				msg.setNode(node);
+				msg.setClient(node);
+				//msg.setNode(node);
 				command.setRequest(msg);
 				partCounter++;
 				CommandMessage commandMessage = command.build();

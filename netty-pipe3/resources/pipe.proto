@@ -12,7 +12,7 @@ message CommandMessage {
       bool ping = 3;
       string message = 4;
       Request request =6;
-      //Failure err = 5;
+      Failure err = 5;
       WorkStealingRequest wsr = 7;
       AddNodeRequest anr = 8;
       Response response = 9;
