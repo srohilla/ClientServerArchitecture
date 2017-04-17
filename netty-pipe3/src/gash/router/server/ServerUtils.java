@@ -1,8 +1,11 @@
 package gash.router.server;
 
+import java.util.HashMap;
 import java.util.Random;
 
 public class ServerUtils {
+	
+	static HashMap<String, Long> timeOutMap = new HashMap<>();
 /**
 	public static long getCurrentUnixTimeStamp() {
 		long unixTime = System.currentTimeMillis() / 1000L;
@@ -64,5 +67,12 @@ public class ServerUtils {
 		return 100000L;
 	}
 	
+	public static void setRequestTimeout(String fileName, long milliseconds){
+		timeOutMap.put(fileName, milliseconds);
+	}
+	
+	public static long getRequestTimeout(String fileName){
+		return timeOutMap.get(fileName);
+	}
 	
 }

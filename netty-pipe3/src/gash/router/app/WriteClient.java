@@ -84,14 +84,12 @@ public class WriteClient {
 		}
 
 	}
-
-	
-	
 	
 	public static void writeFile(File f){
 		
 			int partCounter = 0;
 			byte[] data;
+			byte[] remainingData;
 			Logger.DEBUG("File Size : " + f.length());
 			long fileSize = f.length();
 			int chunks = (int) Math.ceil(f.length()/(double)chunkSize);
@@ -108,18 +106,31 @@ public class WriteClient {
 				
 			String name = f.getName();
 			//int tmp = chunks;
-			while(fileSize > 0 && bis.read(data) > 0){
-				
+			ByteString byteStringData;
+			while(fileSize > 0){
+				Logger.DEBUG("Bytes to read : " + bis.read(data) );
 				Logger.DEBUG("File LEft : " + fileSize);
-				if(fileSize < chunkSize){
-					data = new byte[(int) fileSize];
-					fileSize = 0;
-				}
-
-				fileSize -= chunkSize;
+				Chunk.Builder chunk = Chunk.newBuilder();
 				
-				ByteString byteStringData = ByteString.copyFrom(data);
+				if(fileSize < chunkSize){
+					remainingData = new byte[(int) fileSize];
+					Logger.DEBUG("Last Bytes read : " + bis.read(remainingData));
+					byteStringData = ByteString.copyFrom(remainingData);
+					fileSize = 0;
+					chunk.setChunkId(partCounter);
+					chunk.setChunkSize(remainingData.length);
+					chunk.setChunkData(byteStringData);
+				}
+				else{
+					fileSize -= chunkSize;
+					byteStringData = ByteString.copyFrom(data);
+					chunk.setChunkId(partCounter);
+					chunk.setChunkSize(data.length);
+					chunk.setChunkData(byteStringData);
+				}
+				
 				Logger.DEBUG(byteStringData.toStringUtf8());
+				
 				CommandMessage.Builder command = CommandMessage.newBuilder();
 				Request.Builder msg = Request.newBuilder();
 				msg.setRequestType(TaskType.WRITEFILE);
@@ -128,19 +139,16 @@ public class WriteClient {
 				rwb.setFilename(f.getName());
 				rwb.setNumOfChunks(chunks);
 				Header.Builder header= Header.newBuilder();
-				header.setNodeId(1);
-				header.setTime(0);
+				header.setNodeId(999); // 999 = Client
+				header.setTime(System.currentTimeMillis());
 				command.setHeader(header);
-				Chunk.Builder chunk = Chunk.newBuilder();
-				chunk.setChunkId(partCounter);
-				chunk.setChunkSize(chunkSize);
-				chunk.setChunkData(byteStringData);
+				
 				rwb.setChunk(chunk);
 				msg.setRwb(rwb);
 				Node.Builder node = Node.newBuilder();
-				node.setHost(InetAddress.getLocalHost().getHostAddress());
-				node.setPort(7777);
-				node.setNodeId(-1);
+				node.setHost("localhost");
+				node.setPort(4888);
+				node.setNodeId(999);
 				msg.setClient(node);
 				command.setRequest(msg);
 				partCounter++;

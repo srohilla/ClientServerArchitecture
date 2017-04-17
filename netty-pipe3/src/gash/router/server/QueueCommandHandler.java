@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import gash.router.app.ServerApp;
 import gash.router.client.CommInit;
 import gash.router.container.RoutingConf;
+import gash.router.server.edges.EdgeInfo;
+import gash.router.server.edges.EdgeList;
 import gash.router.server.raft.NodeState;
 import gash.router.server.timer.NodeTimer;
 import io.netty.bootstrap.Bootstrap;
@@ -55,9 +57,10 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 	protected static Queue<CommandMessage> leaderMessageQue;
 	protected static Queue<CommandMessage> nonLeaderMessageQue;
 	private static HashMap<String, List<CommandMessage>> map = new HashMap<>();
+	private static EdgeList outbound = new EdgeList();
 	private static Node client;
 	
-	static ChannelFuture cf;
+	//static ChannelFuture cf;
 	static EventLoopGroup group = new NioEventLoopGroup();
 	
 	public QueueCommandHandler(RoutingConf conf, Queue<CommandMessage> leaderMessageQue, 
@@ -77,9 +80,9 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 	 * @param msg
 	 */
 	
-	public static void init(String host_received, int port_received)
+	public static void init(EdgeInfo ei)
 	{
-		logger.info("Trying to connect to host ! " + host_received);
+		logger.info("Trying to connect to host ! " + ei.getHost());
 		try {
 			CommInit si = new CommInit(false);
 			Bootstrap b = new Bootstrap();
@@ -90,13 +93,15 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 
 
 			// Make the connection attempt.
-			cf = b.connect(host_received, port_received).syncUninterruptibly();
+			ChannelFuture cf = b.connect(ei.getHost(), ei.getPort()).syncUninterruptibly();
 
 			
 			// want to monitor the connection to the server s.t. if we loose the
 			// connection, we can try to re-establish it.
 			// ClientClosedListener ccl = new ClientClosedListener(this);
 			// channel.channel().closeFuture().addListener(ccl);
+			ei.setChannel(cf.channel());
+			ei.setActive(true);
 
 			System.out.println(cf.channel().localAddress() + " -> open: " + cf.channel().isOpen()
 					+ ", write: " + cf.channel().isWritable() + ", reg: " + cf.channel().isRegistered());
@@ -108,23 +113,25 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 
 	}
 	
-	public void handleWSRRequest(CommandMessage msg, Channel channel){
+	/*public void handleWSRRequest(CommandMessage msg, Channel channel){
 		
 		
 		if(msg.hasRequest()){
 			logger.info("... inside Message.Hasrequest() ... ");
 			Request req = msg.getRequest();
+			
 			client = req.getClient();
 			if(req.hasRequestType()){
 				logger.info("... inside Message.HasrequestType() ... ");
-				if(req.getRequestType().getNumber() == TaskType.WRITEFILE_VALUE){
+				if(req.getRequestType().getNumber() == TaskType.WRITEFILE_VALUE){*/
 					/*
 					 * Handling Write Requests
 					 */
-					logger.info("... inside Message.getRequest() == WRITE_FILE... ");
+					/*logger.info("... inside Message.getRequest() == WRITE_FILE... ");
 					if(req.hasRwb()){
 						logger.info("... inside request.HasRWB() ... ");
 						WriteBody wb = req.getRwb();
+						
 						logger.info("number of chunks: " + wb.getNumOfChunks());
 						String fileName = wb.getFilename();
 						if(!map.containsKey(fileName)){
@@ -134,7 +141,8 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 							NodeTimer timer = new NodeTimer();
 							ChunkInspector chunkInspector = new ChunkInspector(fileName, wb.getNumOfChunks());
 							Thread t = new Thread(chunkInspector);
-							timer.schedule(t, ServerUtils.getFileReceiveTimeout());
+							logger.info("Timeout scheduled for : " + (System.currentTimeMillis() - msg.getHeader().getTime() + 2000) * wb.getNumOfChunks());
+							timer.schedule(t, (System.currentTimeMillis() - msg.getHeader().getTime() + 2000) * wb.getNumOfChunks());
 						}
 						else{
 							map.get(fileName).add(wb.getChunk().getChunkId(), msg);
@@ -161,17 +169,17 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 			 * Send requests to Leader if leaderQueue is not empty !
 			 */
 			
-			if(leaderMessageQue.size() > 0 && Integer.parseInt(request.getNodeState()) == (NodeState.LEADER)){
+			/*if(leaderMessageQue.size() > 0 && Integer.parseInt(request.getNodeState()) == (NodeState.LEADER)){
 				logger.info("... inside leaderMessagequeSize() > 0 && node state leader... leader queue size" + leaderMessageQue.size());
 				String host = request.getHost();
 				int port = request.getPort();
-				CommandMessage task = leaderMessageQue.poll();
+				CommandMessage task = leaderMessageQue.poll();*/
 				/*
 				 * Create Connection to host and port and write task to the channel
 				 */
-				logger.info("Before init");
+				/*logger.info("Before init");
 				init(host, port);
-				logger.info("After Init");
+				logger.info("After Init");*/
 				/*EventLoopGroup group = new NioEventLoopGroup();
 				try {
 					CommInit si = new CommInit(false);
@@ -197,7 +205,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				} catch (Throwable ex) {
 					System.out.println("failed to initialize the client connection " + ex.toString());
 					ex.printStackTrace();
-				}*/
+				}
 				logger.info("Before writing to channel ");
 				cf.channel().writeAndFlush(task);
 				if (cf.isDone() && cf.isSuccess()) {
@@ -212,7 +220,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				/*
 				 * Create Connection to host and port and write task to the channel
 				 */
-				init(host, port);
+				//init(host, port);
 				/*EventLoopGroup group = new NioEventLoopGroup();
 				try {
 					CommInit si = new CommInit(false);
@@ -238,7 +246,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				} catch (Throwable ex) {
 					System.out.println("failed to initialize the client connection " + ex.toString());
 					ex.printStackTrace();
-				}*/
+				}
 				
 				cf.channel().writeAndFlush(task);
 				if (cf.isDone() && cf.isSuccess()) {
@@ -252,7 +260,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 		}
 		
 		
-	}
+	}*/
 	
 	public void handleMessage(CommandMessage msg, Channel channel) {
 		
@@ -270,195 +278,145 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 		logger.info("Handling msg in handleMessage()");
 		logger.info("WSR request is : " + msg.hasWsr());
 		
-		if(msg.hasRequest()){
-			logger.info("... inside Message.Hasrequest() ... ");
-			Request req = msg.getRequest();
-			client = req.getClient();
-			if(req.hasRequestType()){
-				logger.info("... inside Message.HasrequestType() ... ");
-				if(req.getRequestType().getNumber() == TaskType.WRITEFILE_VALUE){
-					/*
-					 * Handling Write Requests
-					 */
-					logger.info("... inside Message.getRequest() == WRITE_FILE... ");
-					if(req.hasRwb()){
-						logger.info("... inside request.HasRWB() ... ");
-						WriteBody wb = req.getRwb();
-						logger.info("number of chunks: " + wb.getNumOfChunks());
-						String fileName = wb.getFilename();
-						if(!map.containsKey(fileName)){
-							ArrayList<CommandMessage> list = new ArrayList<>(wb.getNumOfChunks());
-							list.add(wb.getChunk().getChunkId(), msg);
-							map.put(fileName, list);
-							NodeTimer timer = new NodeTimer();
-							ChunkInspector chunkInspector = new ChunkInspector(fileName, wb.getNumOfChunks());
-							Thread t = new Thread(chunkInspector);
-							timer.schedule(t, ServerUtils.getFileReceiveTimeout());
-						}
-						else{
-							map.get(fileName).add(wb.getChunk().getChunkId(), msg);
-						}
-					}
-				}
-				else if(req.getRequestType().getNumber() == TaskType.READFILE_VALUE){
-					/*
-					 * Handling Read Requests
-					 */
-					logger.info("... inside req.getRequest() == READ_FILE ... ");
-					nonLeaderMessageQue.offer(msg);
-				}
-			}
-			else if(msg.hasAnr()){
-				/*
-				 * Handling Add Node requests
-				 */
-				logger.info("... inside Message.HasANR() node addtion... ");
-				leaderMessageQue.offer(msg);
-			}
-			else if(msg.hasWsr()){
-				/*
-				 * Handling Work Stealing Requests
-				 */
-				logger.info("... inside Message.HasWSR() ... ");
-				logger.info("WSR request received");
-				logger.info("Leader Queue size : " + leaderMessageQue.size());
+		try{
+			if(msg.hasRequest()){
+				logger.info("... inside Message.Hasrequest() ... ");
+				Request req = msg.getRequest();
 				
-				WorkStealingRequest request = msg.getWsr();
-				logger.info("WSR received from : " + request.getNodeState().equals(NodeState.LEADER));
-				/*
-				 * Send requests to Leader if leaderQueue is not empty !
-				 */
-				if(leaderMessageQue.size() > 0 && request.getNodeState().equals(NodeState.LEADER)){
-					logger.info("... inside leaderMessagequeSize() > 0 && node state leader... leader queue size" + leaderMessageQue.size());
-					String host = request.getHost();
-					int port = request.getPort();
-					CommandMessage task = leaderMessageQue.poll();
-					/*
-					 * Create Connection to host and port and write task to the channel
-					 */
-					init(host, port);
-					/*EventLoopGroup group = new NioEventLoopGroup();
-					try {
-						CommInit si = new CommInit(false);
-						Bootstrap b = new Bootstrap();
-						b.group(group).channel(NioSocketChannel.class).handler(si);
-						b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
-						b.option(ChannelOption.TCP_NODELAY, true);
-						b.option(ChannelOption.SO_KEEPALIVE, true);
-
-
-						// Make the connection attempt.
-						chanl = b.connect(host, port).syncUninterruptibly();
-
-						
-						// want to monitor the connection to the server s.t. if we loose the
-						// connection, we can try to re-establish it.
-						// ClientClosedListener ccl = new ClientClosedListener(this);
-						// channel.channel().closeFuture().addListener(ccl);
-
-						System.out.println(chanl.channel().localAddress() + " -> open: " + chanl.channel().isOpen()
-								+ ", write: " + chanl.channel().isWritable() + ", reg: " + chanl.channel().isRegistered());
-
-					} catch (Throwable ex) {
-						System.out.println("failed to initialize the client connection " + ex.toString());
-						ex.printStackTrace();
-					}*/
-					
-					cf.channel().writeAndFlush(task);
-					if (cf.isDone() && cf.isSuccess()) {
-						System.out.println("Msg sent succesfully:");
-					}
-				}
-				else{
-					logger.info("... inside Non Leader Requeset ... non laeader queue size : " + nonLeaderMessageQue.size());
-					String host = request.getHost();
-					int port = request.getPort();
-					CommandMessage task = nonLeaderMessageQue.poll();
-					/*
-					 * Create Connection to host and port and write task to the channel
-					 */
-					init(host, port);
-					/*EventLoopGroup group = new NioEventLoopGroup();
-					try {
-						CommInit si = new CommInit(false);
-						Bootstrap b = new Bootstrap();
-						b.group(group).channel(NioSocketChannel.class).handler(si);
-						b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
-						b.option(ChannelOption.TCP_NODELAY, true);
-						b.option(ChannelOption.SO_KEEPALIVE, true);
-
-
-						// Make the connection attempt.
-						chanl = b.connect(host, port).syncUninterruptibly();
-
-						
-						// want to monitor the connection to the server s.t. if we loose the
-						// connection, we can try to re-establish it.
-						// ClientClosedListener ccl = new ClientClosedListener(this);
-						// channel.channel().closeFuture().addListener(ccl);
-
-						System.out.println(chanl.channel().localAddress() + " -> open: " + chanl.channel().isOpen()
-								+ ", write: " + chanl.channel().isWritable() + ", reg: " + chanl.channel().isRegistered());
-
-					} catch (Throwable ex) {
-						System.out.println("failed to initialize the client connection " + ex.toString());
-						ex.printStackTrace();
-					}*/
-					
-					cf.channel().writeAndFlush(task);
-					if (cf.isDone() && cf.isSuccess()) {
-						System.out.println("Msg sent succesfully:");
-					}
-				}
+				client = req.getClient();
 				
-			}
-			else if(msg.hasResponse()){
-				if(msg.getResponse().getResponseType().equals(TaskType.READFILE)){
-					Response response = msg.getResponse();
-					QueueCommandHandler.sendAcknowledgement(response);
-				}
-			}
-		}
-		
-		/* Code to schedule a timer !!
-		 * timer = new NodeTimer();
-			timer.schedule(new Runnable() {
-				@Override
-				public void run() {
+				if(req.hasRequestType()){
+					logger.info("... inside Message.HasrequestType() ... ");
+					if(req.getRequestType().getNumber() == TaskType.WRITEFILE_VALUE){
+						/*
+						 * Handling Write Requests
+						 */
+						logger.info("... inside Message.getRequest() == WRITE_FILE... ");
+						if(req.hasRwb()){
+							logger.info("... inside request.HasRWB() ... ");
+							WriteBody wb = req.getRwb();
+							
+							logger.info("number of chunks: " + wb.getNumOfChunks());
+							String fileName = wb.getFilename();
+							if(!map.containsKey(fileName)){
+								ArrayList<CommandMessage> list = new ArrayList<>(wb.getNumOfChunks());
+								list.add(wb.getChunk().getChunkId(), msg);
+								map.put(fileName, list);
+								NodeTimer timer = new NodeTimer();
+								ChunkInspector chunkInspector = new ChunkInspector(fileName, wb.getNumOfChunks());
+								Thread t = new Thread(chunkInspector);
+								//logger.info("Timeout scheduled for : " +  * wb.getNumOfChunks());
+								ServerUtils.setRequestTimeout(fileName,(System.currentTimeMillis() - msg.getHeader().getTime() + 2000));
+								timer.schedule(t, ServerUtils.getRequestTimeout(fileName) * wb.getNumOfChunks());
+							}
+							else{
+								map.get(fileName).add(wb.getChunk().getChunkId(), msg);
+							}
+						}
+						System.out.println("Queue Command Handler : OH i got a file to write");
 	
+					}
+				
+			
+					else if(req.getRequestType().getNumber() == TaskType.READFILE_VALUE){
+								/*
+								 * Handling Read Requests
+								 */
+						logger.info("... inside req.getRequest() == READ_FILE ... ");
+						nonLeaderMessageQue.offer(msg);
+					}
+				}
+			}
+			
+			else if(msg.hasAnr()){
+					/*
+					 * Handling Add Node requests
+					 */
+					logger.info("... inside Message.HasANR() node addtion... ");
+					leaderMessageQue.offer(msg);
+			}
+			
+			else if(msg.hasWsr() == true){
+					
+					logger.info("... inside Message.HasWSR() ... ");
+					logger.info("WSR request received");
+					logger.info("Leader Queue size : " + leaderMessageQue.size());
+					
+					WorkStealingRequest request = msg.getWsr();
+					
+					request.getNodeState();
+					logger.info("WSR received from : " + request.getNodeState());
+					/*
+					 * Send requests to Leader if leaderQueue is not empty !
+					 */
+					
+					if(leaderMessageQue.size() > 0 && Integer.parseInt(request.getNodeState()) == (NodeState.LEADER)){
+						logger.info("... inside leaderMessagequeSize() > 0 && node state leader... leader queue size" + leaderMessageQue.size());
+						String host = request.getHost();
+						int port = request.getPort();
+						int nodeId = msg.getHeader().getNodeId();
+						
+						CommandMessage task = leaderMessageQue.poll();
+						/*
+						 * Create Connection to host and port and write task to the channel
+						 */
+						
+						if(!outbound.getMap().containsKey(nodeId)){
+							logger.info("Before init");
+							init(outbound.addNode(nodeId, host, port));
+							logger.info("After Init");
+							logger.info("Before writing to channel ");
+							outbound.getMap().get(nodeId).getChannel().writeAndFlush(task);
+						}
+						
+						else if(outbound.getMap().get(nodeId).isActive() && outbound.getMap().get(nodeId).getChannel() != null){
+							logger.info("Before writing to channel ");
+							ChannelFuture cf = outbound.getMap().get(nodeId).getChannel().writeAndFlush(task);
+							if (cf.isDone() && cf.isSuccess()) {
+								System.out.println("Work Stealing task sent succesfully to Leader:");
+							}
+						}
+						
+					}
+					else if(nonLeaderMessageQue.size() > 0){
+						logger.info("... inside Non Leader Request ... non laeader queue size : " + nonLeaderMessageQue.size());
+						String host = request.getHost();
+						int port = request.getPort();
+						int nodeId = msg.getHeader().getNodeId();
+						CommandMessage task = nonLeaderMessageQue.poll();
+						/*
+						 * Create Connection to host and port and write task to the channel
+						 */
+						if(!outbound.getMap().containsKey(nodeId)){
+							logger.info("Before init");
+							init(outbound.addNode(nodeId, host, port));
+							logger.info("After Init");
+							logger.info("Before writing to channel ");
+							outbound.getMap().get(nodeId).getChannel().writeAndFlush(task);
+						}
+						
+						else if(outbound.getMap().get(nodeId).isActive() && outbound.getMap().get(nodeId).getChannel() != null){
+							logger.info("Before writing to channel ");
+							ChannelFuture cf = outbound.getMap().get(nodeId).getChannel().writeAndFlush(task);
+							if (cf.isDone() && cf.isSuccess()) {
+								System.out.println("Work Stealing task sent succesfully to Node:");
+							}
+						}
+			
+					}
+					else{
+						logger.info("Queues are empty ! NO Task !!");
+					}
 					
 				}
-			}, ServerUtils.getFixedTimeout());
-		 */
-		
-		if (msg == null) {
-			// TODO add logging
-			System.out.println("ERROR: Unexpected content - " + msg);
-			return;
-		}
-       // ServerApp.propagateMessage(msg);
-		//PrintUtil.printCommand(msg);
-         
-		try {
-			// TODO How can you implement this without if-else statements?
-			if (msg.hasPing()) {
-				
-				logger.info("ping from " + msg.getHeader().getNodeId());
-				//to distribute this message internally
-			} else if (msg.hasMessage()) {
-				logger.info(msg.getMessage());
-			}
-			else if (msg.hasRequest() == true) {
-				System.out.println("Queue Command Handler : OH i got a file to write");
-				//NodeState.getInstance().getState().handleWriteFile(msg.getRequest().getRwb());
-				
-			}
-			else {
-				//TODO
-				
-			}
-
-		} catch (Exception e) {
+				else if(msg.hasResponse()){
+					if(msg.getResponse().getResponseType().equals(TaskType.READFILE)){
+						Response response = msg.getResponse();
+						QueueCommandHandler.sendAcknowledgement(response);
+					}
+				}
+			
+			} catch (Exception e) {
 			// TODO add logging
 			Failure.Builder eb = Failure.newBuilder();
 			eb.setId(conf.getNodeId());
@@ -486,17 +444,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
 		
 		logger.info("Request arrived from : " + msg.getHeader().getNodeId());
-		handleWSRRequest(msg, ctx.channel());
-		//handleMessage(msg, ctx.channel());
-		/*System.out.println(" Pushing haschode to messageQue");
-
-		// if it is a write message
-		if(msg.getRequest().getRequestType().getNumber() == RequestType.WRITEFILE_VALUE)
-			leaderMessageQue.add(msg);
-		
-		else
-			nonLeaderMessageQue.add(msg);
-			*/
+		handleMessage(msg, ctx.channel());
 		
 	}
 
@@ -510,7 +458,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 		
 		String fileName;
 		int numberOfChunks;
-		
+
 		public ChunkInspector(String fileName, int numberOfChunks) {
 			// TODO Auto-generated constructor stub
 			this.fileName = fileName;
@@ -531,12 +479,12 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				/*
 				 * Send writeResponse back to client
 				 */
-				/*Response.Builder response = Response.newBuilder();
+				Response.Builder response = Response.newBuilder();
 				response.setFilename(fileName);
 				response.setResponseType(TaskType.WRITEFILE);
 				response.setStatus(Status.Success);
 				Response resp = response.build();
-				QueueCommandHandler.sendAcknowledgement(resp);*/
+				QueueCommandHandler.sendAcknowledgement(resp);
 			}
 			else{
 				/*
@@ -564,9 +512,10 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 				
 				
 				NodeTimer timer = new NodeTimer();
-				ChunkInspector chunkInspector = new ChunkInspector(fileName, numberOfChunks );
+				ChunkInspector chunkInspector = new ChunkInspector(fileName, numberOfChunks);
 				Thread t = new Thread(chunkInspector);
-				timer.schedule(t, ServerUtils.getFileReceiveTimeout());
+				timer.schedule(t, ServerUtils.getRequestTimeout(fileName) * numberOfChunks);
+				
 				
 			}
 		}
@@ -578,7 +527,7 @@ public class QueueCommandHandler extends SimpleChannelInboundHandler<CommandMess
 		CommandMessage.Builder command = CommandMessage.newBuilder();
 		Header.Builder header = Header.newBuilder();
 		header.setNodeId(0);
-		header.setTime(999);
+		header.setTime(System.currentTimeMillis());
 		command.setHeader(header);
 		command.setResponse(response);
 		ChannelFuture channel = null;
